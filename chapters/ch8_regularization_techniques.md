@@ -768,3 +768,664 @@ Implement a step decay learning rate schedule where the learning rate is multipl
 ### Exercise 5: Mini-Batch Size Effects
 
 Train the MNIST classifier with different mini-batch sizes (1, 10, 100, full dataset) and compare the resulting training curves and final test accuracies. Discuss the trade-offs between batch size, training speed, and generalization performance.
+## Project 1: Mathematical Analysis of L1 and L2 Regularization
+
+### Learning Objective
+In this project, you'll mathematically analyze how L1 and L2 regularization affect network weights during training. You'll learn how these techniques prevent overfitting by performing calculations and visualizing the results.
+
+### Problem Statement
+You're developing a neural network to predict wildfires based on environmental factors. However, your dataset is limited to only 50 observations from a specific region. To ensure your model generalizes well to other regions, you need to implement regularization.
+
+Let's examine a simplified version of your model with just two weights:
+- w1: weight for temperature data
+- w2: weight for humidity data
+
+### Step 1: Define the Loss Function
+Without regularization, your loss function is the Mean Squared Error (MSE):
+
+Loss = (prediction - actual)²
+
+With regularization, we add a penalty term:
+
+L1 Regularization (Lasso):
+Loss = (prediction - actual)² + λ × (|w1| + |w2|)
+
+L2 Regularization (Ridge):
+Loss = (prediction - actual)² + λ × (w1² + w2²)
+
+Where λ (lambda) is the regularization strength.
+
+### Step 2: Calculate Gradient Updates
+Let's analyze how each regularization method affects weight updates during training. Assume we've calculated that the gradients of the MSE with respect to w1 and w2 are:
+
+∂MSE/∂w1 = -0.4  
+∂MSE/∂w2 = -0.3
+
+This means that without regularization, we'd update the weights as follows (with learning rate α = 0.1):
+
+w1_new = w1_old - α × (-0.4) = w1_old + 0.04
+w2_new = w2_old - α × (-0.3) = w2_old + 0.03
+
+Now let's consider the effect of regularization on these updates.
+
+#### L2 Regularization (Ridge)
+For L2 regularization, we need to add the gradient of the penalty term:
+
+∂(L2_penalty)/∂w1 = 2λw1
+∂(L2_penalty)/∂w2 = 2λw2
+
+Let's use λ = 0.1 and assume current weights are w1 = 2.0 and w2 = -1.5.
+
+L2 gradient for w1 = 2 × 0.1 × 2.0 = 0.4
+L2 gradient for w2 = 2 × 0.1 × (-1.5) = -0.3
+
+Total gradient for w1 = -0.4 + 0.4 = 0.0
+Total gradient for w2 = -0.3 + (-0.3) = -0.6
+
+Weight updates with L2 regularization:
+w1_new = 2.0 - 0.1 × 0.0 = 2.0
+w2_new = -1.5 - 0.1 × (-0.6) = -1.5 + 0.06 = -1.44
+
+#### L1 Regularization (Lasso)
+For L1 regularization, the gradient of the penalty term is:
+
+∂(L1_penalty)/∂w1 = λ × sign(w1)
+∂(L1_penalty)/∂w2 = λ × sign(w2)
+
+Where sign() returns 1 for positive values, -1 for negative values, and 0 for zero.
+
+With λ = 0.1 and the same weights (w1 = 2.0, w2 = -1.5):
+
+L1 gradient for w1 = 0.1 × sign(2.0) = 0.1 × 1 = 0.1
+L1 gradient for w2 = 0.1 × sign(-1.5) = 0.1 × (-1) = -0.1
+
+Total gradient for w1 = -0.4 + 0.1 = -0.3
+Total gradient for w2 = -0.3 + (-0.1) = -0.4
+
+Weight updates with L1 regularization:
+w1_new = 2.0 - 0.1 × (-0.3) = 2.0 + 0.03 = 2.03
+w2_new = -1.5 - 0.1 × (-0.4) = -1.5 + 0.04 = -1.46
+
+### Step 3: Visualize and Compare Results
+
+Let's visualize how these weights would change over multiple iterations:
+
+```mermaid
+flowchart LR
+    subgraph "No Regularization"
+        A1["w1 = 2.00"] --> B1["w1 = 2.04"] --> C1["w1 = 2.08"] --> D1["w1 = 2.12"]
+        A2["w2 = -1.50"] --> B2["w2 = -1.47"] --> C2["w2 = -1.44"] --> D2["w2 = -1.41"]
+    end
+    
+    subgraph "L2 Regularization"
+        E1["w1 = 2.00"] --> F1["w1 = 2.00"] --> G1["w1 = 2.00"] --> H1["w1 = 2.00"]
+        E2["w2 = -1.50"] --> F2["w2 = -1.44"] --> G2["w2 = -1.38"] --> H2["w2 = -1.33"]
+    end
+    
+    subgraph "L1 Regularization"
+        I1["w1 = 2.00"] --> J1["w1 = 2.03"] --> K1["w1 = 2.06"] --> L1["w1 = 2.09"]
+        I2["w2 = -1.50"] --> J2["w2 = -1.46"] --> K2["w2 = -1.42"] --> L2["w2 = -1.38"]
+    end
+    
+    style A1,A2,E1,E2,I1,I2 fill:#bbdefb,stroke:#333,stroke-width:1px
+    style B1,B2,F1,F2,J1,J2 fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style C1,C2,G1,G2,K1,K2 fill:#ffcc80,stroke:#333,stroke-width:1px
+    style D1,D2,H1,H2,L1,L2 fill:#f8bbd0,stroke:#333,stroke-width:1px
+```
+
+### Step 4: Interpret the Results
+Notice the different effects of each regularization method:
+
+1. **No Regularization**: Both weights continue to increase in magnitude without any constraints.
+
+2. **L2 Regularization**: 
+   - Weight w1 remains unchanged because the data gradient and regularization gradient cancel each other out.
+   - Weight w2 still increases in magnitude but more slowly than without regularization.
+   - L2 "shrinks" weights proportionally to their size.
+
+3. **L1 Regularization**: 
+   - Both weights increase in magnitude, but less than without regularization.
+   - L1 applies a constant penalty regardless of weight magnitude.
+   - Over time, L1 can push small or irrelevant weights exactly to zero.
+
+### Step 5: Special Case - Driving Weights to Zero
+Let's explore how L1 regularization can drive weights to exactly zero. 
+
+Assume we have a weight w3 = 0.05 with gradient ∂MSE/∂w3 = -0.02.
+
+With L1 regularization (λ = 0.1):
+L1 gradient for w3 = 0.1 × sign(0.05) = 0.1
+
+Total gradient = -0.02 + 0.1 = 0.08
+
+Weight update (α = 0.1):
+w3_new = 0.05 - 0.1 × 0.08 = 0.05 - 0.008 = 0.042
+
+If we continue this process, w3 will eventually reach zero and potentially become negative. But once it crosses zero, the sign() function flips, creating a "bouncing" effect that often results in the weight staying exactly at zero.
+
+This behavior explains why L1 regularization produces sparse models (many exactly-zero weights), while L2 makes weights small but rarely exactly zero.
+
+### Step 6: Effect on Decision Boundaries
+The weights in neural networks determine decision boundaries between classes. Let's examine how regularization affects these boundaries.
+
+Consider a simple classification problem with two features:
+- Temperature (normalized to 0-1)
+- Humidity (normalized to 0-1)
+
+Without any regularization, our network might find a complex decision boundary:
+
+```
+wildfireRisk = 3.5 × temperature + 2.7 × humidity - 4.2 × temperature² + 5.1 × temperature × humidity - 1.8
+```
+
+With strong regularization, the model is forced to find a simpler boundary:
+
+```
+wildfireRisk = 1.2 × temperature - 0.8 × humidity + 0.3
+```
+
+The simpler boundary may have slightly higher error on training data but will likely generalize better to new regions with different environmental conditions.
+
+### Exercise for Practice
+Calculate three more iterations of gradient updates for w1 and w2 with both L1 and L2 regularization. Observe which regularization method drives w2 closer to zero more quickly.
+
+1. Start with: w1 = 2.0, w2 = -1.5
+2. Use the gradients: ∂MSE/∂w1 = -0.4, ∂MSE/∂w2 = -0.3
+3. Use λ = 0.1 and learning rate α = 0.1
+4. Calculate updates for both L1 and L2 regularization
+5. Graph the weight trajectories
+
+This project demonstrates how regularization mathematically affects weight updates during training, helping control model complexity and prevent overfitting—critical for environmental models that need to generalize across different ecosystems and conditions.
+## Project 2: Implementing Regularization Techniques for Species Distribution Modeling
+
+### Learning Objective
+In this project, you'll implement and compare various regularization techniques to create a robust species distribution model. You'll work with environmental data to predict habitat suitability for an endangered species, using regularization to ensure your model generalizes well to unseen locations.
+
+### Problem Statement
+You're a conservation scientist developing a model to predict suitable habitat for the Golden-cheeked Warbler, an endangered bird species. You have data from 100 survey sites with various environmental measurements and presence/absence observations. Since you can only survey a small fraction of the bird's potential range, your model needs to generalize well beyond your sampling sites.
+
+### Step 1: Set Up the Dataset
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.regularizers import l1, l2, l1_l2
+from tensorflow.keras.callbacks import EarlyStopping
+
+# Generate synthetic environmental data for demonstration
+np.random.seed(42)
+
+# Create features: temperature, precipitation, elevation, canopy cover, distance to water
+n_samples = 100
+features = np.random.rand(n_samples, 5)
+
+# Generate synthetic species presence/absence based on an ecological pattern
+# The true pattern is related to only 2 features plus some noise
+true_weights = np.array([1.5, -2.0, 0.0, 0.0, 0.0])
+noise = np.random.normal(0, 0.3, n_samples)
+z = np.dot(features, true_weights) + noise
+probability = 1 / (1 + np.exp(-z))  # Logistic function
+labels = (np.random.random(n_samples) < probability).astype(int)
+
+# Split into training and testing sets (70% train, 30% test)
+X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=42)
+
+# Standardize features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Print dataset shape
+print(f"Training data shape: {X_train.shape}")
+print(f"Testing data shape: {X_test.shape}")
+print(f"Class distribution in training data: {np.bincount(y_train)}")
+```
+
+### Step 2: Create a Baseline Model (No Regularization)
+
+```python
+def create_baseline_model(input_shape):
+    model = Sequential([
+        Dense(16, activation='relu', input_shape=(input_shape,)),
+        Dense(8, activation='relu'),
+        Dense(1, activation='sigmoid')
+    ])
+    
+    model.compile(
+        optimizer='adam', 
+        loss='binary_crossentropy',
+        metrics=['accuracy']
+    )
+    
+    return model
+
+# Create and train baseline model
+baseline_model = create_baseline_model(X_train_scaled.shape[1])
+
+history_baseline = baseline_model.fit(
+    X_train_scaled, y_train,
+    epochs=200,
+    batch_size=16,
+    validation_split=0.2,
+    verbose=0
+)
+
+# Evaluate baseline model
+baseline_train_loss, baseline_train_acc = baseline_model.evaluate(X_train_scaled, y_train, verbose=0)
+baseline_test_loss, baseline_test_acc = baseline_model.evaluate(X_test_scaled, y_test, verbose=0)
+
+print(f"Baseline model - Training accuracy: {baseline_train_acc:.4f}")
+print(f"Baseline model - Testing accuracy: {baseline_test_acc:.4f}")
+```
+
+### Step 3: Implement L2 Regularization
+
+```python
+def create_l2_model(input_shape, l2_strength=0.01):
+    model = Sequential([
+        Dense(16, activation='relu', input_shape=(input_shape,), 
+              kernel_regularizer=l2(l2_strength)),
+        Dense(8, activation='relu',
+              kernel_regularizer=l2(l2_strength)),
+        Dense(1, activation='sigmoid')
+    ])
+    
+    model.compile(
+        optimizer='adam', 
+        loss='binary_crossentropy',
+        metrics=['accuracy']
+    )
+    
+    return model
+
+# Create and train L2 regularized model
+l2_model = create_l2_model(X_train_scaled.shape[1])
+
+history_l2 = l2_model.fit(
+    X_train_scaled, y_train,
+    epochs=200,
+    batch_size=16,
+    validation_split=0.2,
+    verbose=0
+)
+
+# Evaluate L2 model
+l2_train_loss, l2_train_acc = l2_model.evaluate(X_train_scaled, y_train, verbose=0)
+l2_test_loss, l2_test_acc = l2_model.evaluate(X_test_scaled, y_test, verbose=0)
+
+print(f"L2 regularized model - Training accuracy: {l2_train_acc:.4f}")
+print(f"L2 regularized model - Testing accuracy: {l2_test_acc:.4f}")
+```
+
+### Step 4: Implement Dropout Regularization
+
+```python
+def create_dropout_model(input_shape, dropout_rate=0.3):
+    model = Sequential([
+        Dense(16, activation='relu', input_shape=(input_shape,)),
+        Dropout(dropout_rate),
+        Dense(8, activation='relu'),
+        Dropout(dropout_rate),
+        Dense(1, activation='sigmoid')
+    ])
+    
+    model.compile(
+        optimizer='adam', 
+        loss='binary_crossentropy',
+        metrics=['accuracy']
+    )
+    
+    return model
+
+# Create and train dropout model
+dropout_model = create_dropout_model(X_train_scaled.shape[1])
+
+history_dropout = dropout_model.fit(
+    X_train_scaled, y_train,
+    epochs=200,
+    batch_size=16,
+    validation_split=0.2,
+    verbose=0
+)
+
+# Evaluate dropout model
+dropout_train_loss, dropout_train_acc = dropout_model.evaluate(X_train_scaled, y_train, verbose=0)
+dropout_test_loss, dropout_test_acc = dropout_model.evaluate(X_test_scaled, y_test, verbose=0)
+
+print(f"Dropout model - Training accuracy: {dropout_train_acc:.4f}")
+print(f"Dropout model - Testing accuracy: {dropout_test_acc:.4f}")
+```
+
+### Step 5: Implement Early Stopping
+
+```python
+def create_model_with_early_stopping(input_shape):
+    model = Sequential([
+        Dense(16, activation='relu', input_shape=(input_shape,)),
+        Dense(8, activation='relu'),
+        Dense(1, activation='sigmoid')
+    ])
+    
+    model.compile(
+        optimizer='adam', 
+        loss='binary_crossentropy',
+        metrics=['accuracy']
+    )
+    
+    return model
+
+# Define early stopping callback
+early_stopping = EarlyStopping(
+    monitor='val_loss',
+    patience=10,
+    restore_best_weights=True
+)
+
+# Create and train model with early stopping
+es_model = create_model_with_early_stopping(X_train_scaled.shape[1])
+
+history_es = es_model.fit(
+    X_train_scaled, y_train,
+    epochs=200,
+    batch_size=16,
+    validation_split=0.2,
+    callbacks=[early_stopping],
+    verbose=0
+)
+
+# Evaluate early stopping model
+es_train_loss, es_train_acc = es_model.evaluate(X_train_scaled, y_train, verbose=0)
+es_test_loss, es_test_acc = es_model.evaluate(X_test_scaled, y_test, verbose=0)
+
+print(f"Early stopping model - Training accuracy: {es_train_acc:.4f}")
+print(f"Early stopping model - Testing accuracy: {es_test_acc:.4f}")
+print(f"Early stopping occurred at epoch {len(history_es.history['loss'])}")
+```
+
+### Step 6: Combine Multiple Regularization Techniques
+
+```python
+def create_combined_model(input_shape, l2_strength=0.01, dropout_rate=0.3):
+    model = Sequential([
+        Dense(16, activation='relu', input_shape=(input_shape,),
+              kernel_regularizer=l2(l2_strength)),
+        Dropout(dropout_rate),
+        Dense(8, activation='relu',
+              kernel_regularizer=l2(l2_strength)),
+        Dropout(dropout_rate),
+        Dense(1, activation='sigmoid')
+    ])
+    
+    model.compile(
+        optimizer='adam', 
+        loss='binary_crossentropy',
+        metrics=['accuracy']
+    )
+    
+    return model
+
+# Create and train combined regularization model
+combined_model = create_combined_model(X_train_scaled.shape[1])
+
+history_combined = combined_model.fit(
+    X_train_scaled, y_train,
+    epochs=200,
+    batch_size=16,
+    validation_split=0.2,
+    callbacks=[early_stopping],  # Also use early stopping
+    verbose=0
+)
+
+# Evaluate combined model
+combined_train_loss, combined_train_acc = combined_model.evaluate(X_train_scaled, y_train, verbose=0)
+combined_test_loss, combined_test_acc = combined_model.evaluate(X_test_scaled, y_test, verbose=0)
+
+print(f"Combined regularization model - Training accuracy: {combined_train_acc:.4f}")
+print(f"Combined regularization model - Testing accuracy: {combined_test_acc:.4f}")
+```
+
+### Step 7: Compare Results and Visualize
+
+```python
+# Collect all results
+models = ['Baseline', 'L2', 'Dropout', 'Early Stopping', 'Combined']
+train_acc = [baseline_train_acc, l2_train_acc, dropout_train_acc, es_train_acc, combined_train_acc]
+test_acc = [baseline_test_acc, l2_test_acc, dropout_test_acc, es_test_acc, combined_test_acc]
+
+# Calculate overfitting gap
+gap = [train - test for train, test in zip(train_acc, test_acc)]
+
+# Plotting
+plt.figure(figsize=(12, 8))
+
+# Bar plot comparing accuracy
+plt.subplot(2, 2, 1)
+x = np.arange(len(models))
+width = 0.35
+plt.bar(x - width/2, train_acc, width, label='Training')
+plt.bar(x + width/2, test_acc, width, label='Testing')
+plt.xlabel('Model Type')
+plt.ylabel('Accuracy')
+plt.title('Training vs Testing Accuracy')
+plt.xticks(x, models, rotation=45)
+plt.legend()
+
+# Bar plot showing overfitting gap
+plt.subplot(2, 2, 2)
+plt.bar(models, gap)
+plt.xlabel('Model Type')
+plt.ylabel('Overfitting Gap (Train Acc - Test Acc)')
+plt.title('Overfitting Comparison')
+plt.xticks(rotation=45)
+
+# Plot learning curves for baseline and best model
+plt.subplot(2, 2, 3)
+plt.plot(history_baseline.history['loss'], label='Baseline Training')
+plt.plot(history_baseline.history['val_loss'], label='Baseline Validation')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Baseline Model Learning Curves')
+plt.legend()
+
+plt.subplot(2, 2, 4)
+plt.plot(history_combined.history['loss'], label='Combined Training')
+plt.plot(history_combined.history['val_loss'], label='Combined Validation')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Combined Model Learning Curves')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 8: Analyze Feature Importance
+
+```python
+# Function to extract and visualize weights from the first layer
+def visualize_feature_importance(model, feature_names):
+    # Extract weights from first layer
+    weights = model.layers[0].get_weights()[0]
+    
+    # Calculate absolute importance of each feature
+    feature_importance = np.mean(np.abs(weights), axis=1)
+    
+    # Sort by importance
+    sorted_idx = np.argsort(feature_importance)
+    
+    plt.figure(figsize=(10, 6))
+    plt.barh(np.array(feature_names)[sorted_idx], feature_importance[sorted_idx])
+    plt.xlabel('Mean Absolute Weight')
+    plt.ylabel('Feature')
+    plt.title('Feature Importance')
+    plt.tight_layout()
+    plt.show()
+    
+    return feature_importance
+
+# Define feature names
+feature_names = ['Temperature', 'Precipitation', 'Elevation', 'Canopy Cover', 'Distance to Water']
+
+# Analyze feature importance for baseline and regularized models
+baseline_importance = visualize_feature_importance(baseline_model, feature_names)
+l2_importance = visualize_feature_importance(l2_model, feature_names)
+
+# Compare importance
+plt.figure(figsize=(12, 6))
+x = np.arange(len(feature_names))
+width = 0.35
+plt.bar(x - width/2, baseline_importance, width, label='Baseline')
+plt.bar(x + width/2, l2_importance, width, label='L2 Regularized')
+plt.xlabel('Feature')
+plt.ylabel('Importance')
+plt.title('Feature Importance: Baseline vs Regularized')
+plt.xticks(x, feature_names, rotation=45)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+print("Remember that the true pattern only depends on Temperature and Precipitation!")
+```
+
+### Step 9: Create a Habitat Suitability Map
+
+```python
+# Function to create a habitat suitability map using our trained model
+def create_habitat_map(model, resolution=100):
+    # Create a grid of temperature and precipitation values
+    temp_range = np.linspace(0, 1, resolution)
+    precip_range = np.linspace(0, 1, resolution)
+    temp_grid, precip_grid = np.meshgrid(temp_range, precip_range)
+    
+    # For simplicity, we'll set other features to their mean values
+    mean_values = np.mean(features, axis=0)[2:]
+    
+    # Prepare the grid points for prediction
+    grid_points = np.zeros((resolution**2, 5))
+    grid_points[:, 0] = temp_grid.flatten()
+    grid_points[:, 1] = precip_grid.flatten()
+    grid_points[:, 2:] = mean_values
+    
+    # Scale the grid points
+    grid_points_scaled = scaler.transform(grid_points)
+    
+    # Predict habitat suitability
+    predictions = model.predict(grid_points_scaled, verbose=0)
+    suitability_map = predictions.reshape(resolution, resolution)
+    
+    return temp_grid, precip_grid, suitability_map
+
+# Create habitat maps using both baseline and regularized models
+temp_grid, precip_grid, baseline_map = create_habitat_map(baseline_model)
+_, _, regularized_map = create_habitat_map(combined_model)
+
+# Plot the habitat suitability maps
+plt.figure(figsize=(15, 6))
+
+plt.subplot(1, 2, 1)
+plt.contourf(temp_grid, precip_grid, baseline_map, levels=20, cmap='viridis')
+plt.colorbar(label='Habitat Suitability')
+plt.xlabel('Temperature')
+plt.ylabel('Precipitation')
+plt.title('Baseline Model: Habitat Suitability Map')
+
+plt.subplot(1, 2, 2)
+plt.contourf(temp_grid, precip_grid, regularized_map, levels=20, cmap='viridis')
+plt.colorbar(label='Habitat Suitability')
+plt.xlabel('Temperature')
+plt.ylabel('Precipitation')
+plt.title('Regularized Model: Habitat Suitability Map')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 10: Model Analysis and Ecological Interpretation
+
+```python
+# Function to identify areas of high uncertainty in predictions
+def analyze_prediction_uncertainty(model, X, n_samples=50):
+    # Use dropout layers at inference time to get prediction variance
+    # This requires a custom model with inference-time dropout
+    
+    # Create a model with dropout active during inference
+    inference_model = Sequential([
+        Dense(16, activation='relu', input_shape=(X.shape[1],)),
+        Dropout(0.3, training=True),  # Keep dropout active during inference
+        Dense(8, activation='relu'),
+        Dropout(0.3, training=True),
+        Dense(1, activation='sigmoid')
+    ])
+    
+    # Copy weights from our trained model
+    for i, layer in enumerate(inference_model.layers):
+        if isinstance(layer, Dense):
+            layer.set_weights(model.layers[i].get_weights())
+    
+    # Make multiple predictions
+    predictions = np.zeros((n_samples, X.shape[0]))
+    for i in range(n_samples):
+        predictions[i] = inference_model.predict(X, verbose=0).flatten()
+    
+    # Calculate mean and variance of predictions
+    mean_pred = np.mean(predictions, axis=0)
+    var_pred = np.var(predictions, axis=0)
+    
+    return mean_pred, var_pred
+
+# Analyze prediction uncertainty on test data
+mean_preds, var_preds = analyze_prediction_uncertainty(dropout_model, X_test_scaled)
+
+# Plot uncertainty
+plt.figure(figsize=(12, 6))
+plt.scatter(mean_preds, var_preds, c=y_test, cmap='coolwarm', s=50)
+plt.colorbar(label='Actual Class')
+plt.xlabel('Predicted Probability')
+plt.ylabel('Prediction Variance (Uncertainty)')
+plt.title('Prediction Uncertainty Analysis')
+plt.tight_layout()
+plt.show()
+
+# Ecological interpretation
+high_uncertainty_idx = np.argsort(var_preds)[-5:]  # Top 5 most uncertain predictions
+print("Environmental conditions with highest prediction uncertainty:")
+for i in high_uncertainty_idx:
+    print(f"Sample {i}: Temperature={X_test[i][0]:.2f}, Precipitation={X_test[i][1]:.2f}, "
+          f"Predicted suitability={mean_preds[i]:.2f} ± {np.sqrt(var_preds[i]):.2f}")
+```
+
+### Ecological Significance of Regularization
+
+In species distribution modeling, overfitting has serious real-world consequences:
+
+1. **Conservation Resource Misallocation**: An overfit model might identify highly specific habitat requirements that don't generalize well, leading to protection of areas with limited actual conservation value.
+
+2. **Missed Critical Habitat**: Conversely, the model might fail to identify suitable habitats in areas with slightly different environmental conditions than the training data.
+
+3. **Climate Change Adaptation Planning**: When projecting habitat suitability under future climate scenarios, an overfit model will make unreliable projections because it's too sensitive to specific current conditions.
+
+By applying regularization techniques, we develop more robust models that:
+
+- Focus on the truly important environmental variables
+- Generalize better to unsampled areas
+- Make more reliable projections under changing conditions
+- Provide more realistic uncertainty estimates
+
+### Extensions and Challenges
+
+1. **Cross-validation**: Implement spatial cross-validation to ensure your model generalizes across different geographic regions.
+
+2. **Hyperparameter Tuning**: Use grid search to find optimal regularization strength (λ) and dropout rates.
+
+3. **Feature Engineering**: Create interaction terms between environmental variables and apply regularization to identify which combinations are truly important.
+
+4. **Ensemble Methods**: Build an ensemble of regularized models to further improve generalization and provide uncertainty estimates.
+
+5. **Transfer Learning**: Test how well your regularized model transfers to a related species with similar but not identical habitat requirements.
+
+This project demonstrates how regularization techniques can significantly improve the generalization of species distribution models, making them more reliable for conservation planning and ecological research.

@@ -712,3 +712,334 @@ As we continue our journey in the next chapter, we'll explore how to link multip
 3. If you noticed that certain weights became very large during training while others remained small, what might this tell you about your environmental data?
 
 4. How might visualizing the weights in your trained network help environmental scientists better understand the systems they study?
+## Exercises
+
+1. **Exploration of Weight Initialization**: Implement a simple two-input, one-output neural network for predicting plant growth based on sunlight hours and water amount. Train the network three times with different initial weight values (-1, 0, and 1) and compare the learning curves.
+
+2. **Correlation Detection**: Create a dataset with one input strongly correlated with the output and one input with no correlation. Train a network and examine the final weights. What do they tell you about how the network "discovered" the relationships in your data?
+
+3. **Multi-Output Training**: Design a neural network that predicts both temperature and humidity based on barometric pressure data. Compare the accuracy of this multi-output network to two separate single-output networks.
+
+4. **Weight Freezing Experiment**: Implement a multi-input network where you selectively "freeze" different weights during training (prevent them from updating). Analyze how this affects the network's ability to learn.
+
+5. **Batch Training Implementation**: Compare the learning stability of updating weights after each example versus updating after batches of 5 examples. Plot the error curves and explain the differences.
+
+## Project 1: Mathematical Analysis of a Multi-Weight Network
+
+### Learning Objective
+In this project, you'll mathematically compute a forward and backward pass through a multi-weight neural network using only algebra. This will solidify your understanding of how neural networks process information and learn.
+
+### Problem Statement
+You're building a model to predict biodiversity levels in different ecosystems. You have these input measurements:
+- Tree density (trees per hectare): 25
+- Annual rainfall (cm): 150
+- Average temperature (°C): 22
+
+You'll create a network with these inputs and one output (biodiversity score). 
+
+### Step 1: Initialize Network Parameters
+We'll start with these weights:
+- w1 (for tree density): 0.1
+- w2 (for rainfall): 0.2
+- w3 (for temperature): -0.1
+
+We'll use a very simple network with just weighted inputs:
+
+```mermaid
+flowchart LR
+    A["Tree Density\n25"] -- "w1 = 0.1" --> D["Biodiversity\nScore"]
+    B["Rainfall\n150"] -- "w2 = 0.2" --> D
+    C["Temperature\n22"] -- "w3 = -0.1" --> D
+    
+    style A fill:#bbdefb,stroke:#333,stroke-width:1px
+    style B fill:#bbdefb,stroke:#333,stroke-width:1px
+    style C fill:#bbdefb,stroke:#333,stroke-width:1px
+    style D fill:#f8bbd0,stroke:#333,stroke-width:1px
+```
+
+### Step 2: Forward Pass - Calculate Prediction
+Compute the weighted sum of inputs:
+
+prediction = (25 × 0.1) + (150 × 0.2) + (22 × -0.1)
+prediction = 2.5 + 30 - 2.2
+prediction = 30.3
+
+### Step 3: Calculate Error
+Assume the actual biodiversity score should be 35.
+
+error = (prediction - actual)²
+error = (30.3 - 35)²
+error = (-4.7)²
+error = 22.09
+
+### Step 4: Calculate Error Derivatives
+Now we'll compute how much each weight contributed to the error:
+
+1. First, find the derivative of error with respect to prediction:
+   
+   error_derivative = 2 × (prediction - actual)
+   error_derivative = 2 × (30.3 - 35)
+   error_derivative = 2 × (-4.7)
+   error_derivative = -9.4
+
+2. Calculate weight gradients (how much each weight should change):
+   
+   w1_gradient = error_derivative × tree_density
+   w1_gradient = -9.4 × 25
+   w1_gradient = -235
+   
+   w2_gradient = error_derivative × rainfall
+   w2_gradient = -9.4 × 150
+   w2_gradient = -1410
+   
+   w3_gradient = error_derivative × temperature
+   w3_gradient = -9.4 × 22
+   w3_gradient = -206.8
+
+### Step 5: Update Weights
+Using a learning rate (α) of 0.0001:
+
+new_w1 = w1 - (α × w1_gradient)
+new_w1 = 0.1 - (0.0001 × -235)
+new_w1 = 0.1 + 0.0235
+new_w1 = 0.1235
+
+new_w2 = w2 - (α × w2_gradient)
+new_w2 = 0.2 - (0.0001 × -1410)
+new_w2 = 0.2 + 0.141
+new_w2 = 0.341
+
+new_w3 = w3 - (α × w3_gradient)
+new_w3 = -0.1 - (0.0001 × -206.8)
+new_w3 = -0.1 + 0.02068
+new_w3 = -0.07932
+
+### Step 6: Calculate New Prediction with Updated Weights
+prediction_new = (25 × 0.1235) + (150 × 0.341) + (22 × -0.07932)
+prediction_new = 3.0875 + 51.15 - 1.74504
+prediction_new ≈ 52.49
+
+You can see the prediction is now closer to the target value of 35. However, it overshot because we used a single large update. In practice, smaller learning rates and multiple iterations produce smoother convergence.
+
+### Exercise for Practice
+Try computing one more iteration with these new weights. Calculate:
+1. The new prediction
+2. The new error
+3. The new gradients
+4. The updated weights after a second iteration
+
+## Project 2: Implementing a Multi-Weight Neural Network
+
+### Learning Objective
+In this project, you'll implement a complete neural network with multiple inputs and outputs based solely on what you've learned in this chapter. You'll see how the mathematical concepts translate into working code.
+
+### Problem Statement
+We're creating an ecosystem health monitoring system for wetlands. Our network will:
+- Take three input measurements: water level, pH, and temperature
+- Predict two output values: plant diversity index and animal activity level
+
+### Step 1: Prepare the Dataset
+First, let's create a small dataset that represents our wetlands monitoring data:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Sample data (5 measurements)
+# Format: [water_level, pH, temperature]
+inputs = np.array([
+    [120, 6.5, 22],  # Measurement 1
+    [90, 7.2, 25],   # Measurement 2
+    [150, 5.8, 18],  # Measurement 3
+    [110, 6.7, 23],  # Measurement 4
+    [85, 7.5, 26]    # Measurement 5
+])
+
+# Target values [plant_diversity, animal_activity]
+targets = np.array([
+    [7.8, 6.2],  # Ecosystem health metrics for measurement 1
+    [5.2, 7.5],  # Ecosystem health metrics for measurement 2
+    [8.7, 4.2],  # Ecosystem health metrics for measurement 3
+    [7.2, 6.8],  # Ecosystem health metrics for measurement 4
+    [4.9, 8.1]   # Ecosystem health metrics for measurement 5
+])
+```
+
+### Step 2: Initialize the Neural Network
+We'll create a network with 3 inputs and 2 outputs, which means we need 6 weights (3 weights per output):
+
+```python
+# Initialize weights randomly between -0.1 and 0.1
+weights = np.random.uniform(-0.1, 0.1, size=(3, 2))
+print("Initial weights:")
+print(weights)
+
+# Learning rate
+learning_rate = 0.0001
+```
+
+### Step 3: Define the Network's Forward Pass
+The forward pass calculates predictions based on inputs and weights:
+
+```python
+def forward_pass(inputs, weights):
+    """
+    Calculate predictions for all input examples
+    
+    Args:
+        inputs: Array of shape (num_examples, num_features)
+        weights: Array of shape (num_features, num_outputs)
+        
+    Returns:
+        predictions: Array of shape (num_examples, num_outputs)
+    """
+    # Matrix multiplication: inputs × weights
+    return np.dot(inputs, weights)
+```
+
+### Step 4: Define the Error Calculation
+We'll use mean squared error (MSE) to measure how far our predictions are from the targets:
+
+```python
+def calculate_error(predictions, targets):
+    """
+    Calculate mean squared error between predictions and targets
+    
+    Args:
+        predictions: Array of shape (num_examples, num_outputs)
+        targets: Array of shape (num_examples, num_outputs)
+        
+    Returns:
+        error: Mean squared error across all outputs and examples
+    """
+    return np.mean((predictions - targets) ** 2)
+```
+
+### Step 5: Define the Learning Process
+Now let's implement the gradient descent update step:
+
+```python
+def train_network(inputs, targets, weights, learning_rate, epochs):
+    """
+    Train the network using gradient descent
+    
+    Args:
+        inputs: Input features, shape (num_examples, num_features)
+        targets: Target values, shape (num_examples, num_outputs)
+        weights: Initial weights, shape (num_features, num_outputs)
+        learning_rate: Learning rate for gradient descent
+        epochs: Number of training iterations
+        
+    Returns:
+        weights: Updated weights after training
+        errors: List of errors during training
+    """
+    num_examples = inputs.shape[0]
+    errors = []
+    
+    for epoch in range(epochs):
+        # Forward pass
+        predictions = forward_pass(inputs, weights)
+        
+        # Calculate error
+        error = calculate_error(predictions, targets)
+        errors.append(error)
+        
+        # Calculate gradients
+        # derivative of MSE = 2 * (prediction - target) / num_examples
+        error_derivatives = 2 * (predictions - targets) / num_examples
+        
+        # Weight gradients = inputs^T × error_derivatives
+        weight_gradients = np.dot(inputs.T, error_derivatives)
+        
+        # Update weights
+        weights = weights - learning_rate * weight_gradients
+        
+        # Print progress
+        if epoch % 100 == 0:
+            print(f"Epoch {epoch}: Error = {error:.4f}")
+    
+    return weights, errors
+```
+
+### Step 6: Train the Network and Visualize Results
+
+```python
+# Train the network
+epochs = 1000
+final_weights, error_history = train_network(inputs, targets, weights, learning_rate, epochs)
+
+# Print final weights
+print("\nFinal weights:")
+print(final_weights)
+
+# Visualize the learning process
+plt.figure(figsize=(10, 6))
+plt.plot(error_history)
+plt.title('Learning Curve')
+plt.xlabel('Epoch')
+plt.ylabel('Mean Squared Error')
+plt.grid(True)
+
+# Make predictions with the trained network
+final_predictions = forward_pass(inputs, final_weights)
+
+# Compare predictions with targets
+print("\nPredictions vs Targets:")
+for i in range(len(inputs)):
+    print(f"Measurement {i+1}:")
+    print(f"  Inputs: Water Level={inputs[i][0]}, pH={inputs[i][1]}, Temperature={inputs[i][2]}")
+    print(f"  Predicted Plant Diversity: {final_predictions[i][0]:.2f}, Animal Activity: {final_predictions[i][1]:.2f}")
+    print(f"  Actual Plant Diversity: {targets[i][0]:.2f}, Animal Activity: {targets[i][1]:.2f}")
+    print()
+
+plt.figure(figsize=(12, 5))
+plt.subplot(1, 2, 1)
+plt.scatter(targets[:, 0], final_predictions[:, 0])
+plt.plot([min(targets[:, 0]), max(targets[:, 0])], [min(targets[:, 0]), max(targets[:, 0])], 'r--')
+plt.title('Plant Diversity: Predictions vs Actual')
+plt.xlabel('Actual Values')
+plt.ylabel('Predicted Values')
+
+plt.subplot(1, 2, 2)
+plt.scatter(targets[:, 1], final_predictions[:, 1])
+plt.plot([min(targets[:, 1]), max(targets[:, 1])], [min(targets[:, 1]), max(targets[:, 1])], 'r--')
+plt.title('Animal Activity: Predictions vs Actual')
+plt.xlabel('Actual Values')
+plt.ylabel('Predicted Values')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 7: Weight Analysis
+Try to interpret what the network has learned by examining the weights:
+
+```python
+# Analyze the learned weights
+print("\nWeight Analysis:")
+feature_names = ["Water Level", "pH", "Temperature"]
+output_names = ["Plant Diversity", "Animal Activity"]
+
+for i in range(len(feature_names)):
+    for j in range(len(output_names)):
+        importance = abs(final_weights[i][j]) / np.sum(abs(final_weights[:, j]))
+        print(f"Impact of {feature_names[i]} on {output_names[j]}: {importance:.2%}")
+        
+        # Interpret the relationship (positive/negative)
+        if final_weights[i][j] > 0:
+            relationship = "positive (increases together)"
+        else:
+            relationship = "negative (one increases as the other decreases)"
+        print(f"  Relationship: {relationship}")
+    print()
+```
+
+### Extensions and Challenges
+1. Add a bias term to the network (as an additional constant input of 1.0)
+2. Split the data into training and testing sets to evaluate generalization
+3. Implement batch training instead of using all samples at once
+4. Try with different learning rates and compare convergence 
+5. Normalize the inputs and compare learning performance
+
+This project demonstrates how the mathematical principles covered in this chapter apply to a real-world environmental monitoring problem. You've built a complete neural network from scratch that can learn patterns between ecological variables and make predictions about ecosystem health!

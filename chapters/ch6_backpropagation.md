@@ -1594,3 +1594,446 @@ D) How would the network's learned patterns help marine conservationists make be
 ---
 
 These exercises will help you solidify your understanding of backpropagation, nonlinear activation functions, and the practical implementation of deep neural networks for environmental applications. They also give you practice visualizing and interpreting what your networks learn—a crucial skill for making neural networks useful in real-world environmental science.
+## Project 1: Mathematical Analysis of Backpropagation in a Multi-Layer Network
+
+### Learning Objective
+In this project, you'll work through the complete forward and backward pass calculations for a neural network with a hidden layer. This will deepen your understanding of how information flows through a network and how errors are attributed during backpropagation.
+
+### Problem Statement
+You're modeling the relationship between climate variables and coral bleaching events. You have a small neural network with:
+- 2 inputs: [ocean_temperature, acidity_pH]
+- 1 hidden layer with 2 neurons using ReLU activation
+- 1 output: bleaching_risk (0-1 scale)
+
+### Step 1: Initialize Network Parameters
+Let's start with these values:
+- Input values: ocean_temperature = 0.8 (normalized from 30°C), acidity_pH = 0.3 (normalized from pH 7.9)
+- Target output: bleaching_risk = 0.9 (high risk)
+- Hidden layer weights:
+  - w1_h1 = 0.2, w2_h1 = -0.3 (weights to hidden neuron 1)
+  - w1_h2 = 0.4, w2_h2 = 0.1 (weights to hidden neuron 2)
+- Output layer weights:
+  - wh1_o = 0.5 (hidden 1 to output)
+  - wh2_o = 0.6 (hidden 2 to output)
+
+Let's visualize our network:
+
+```mermaid
+flowchart LR
+    I1["Temperature\n0.8"] --> |0.2| H1["Hidden 1\nReLU"]
+    I2["Acidity pH\n0.3"] --> |-0.3| H1
+    I1 --> |0.4| H2["Hidden 2\nReLU"]
+    I2 --> |0.1| H2
+    H1 --> |0.5| O["Bleaching Risk"]
+    H2 --> |0.6| O
+    
+    style I1 fill:#bbdefb,stroke:#333,stroke-width:1px
+    style I2 fill:#bbdefb,stroke:#333,stroke-width:1px
+    style H1 fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style H2 fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style O fill:#f8bbd0,stroke:#333,stroke-width:1px
+```
+
+### Step 2: Forward Pass
+First, we'll calculate the inputs to the hidden layer neurons:
+
+hidden1_input = (0.8 × 0.2) + (0.3 × -0.3)
+hidden1_input = 0.16 - 0.09
+hidden1_input = 0.07
+
+hidden2_input = (0.8 × 0.4) + (0.3 × 0.1)
+hidden2_input = 0.32 + 0.03
+hidden2_input = 0.35
+
+Now apply the ReLU activation function: ReLU(x) = max(0, x)
+
+hidden1_output = ReLU(0.07) = 0.07
+hidden2_output = ReLU(0.35) = 0.35
+
+Next, calculate the input to the output neuron:
+
+output_input = (0.07 × 0.5) + (0.35 × 0.6)
+output_input = 0.035 + 0.21
+output_input = 0.245
+
+Our final prediction is:
+prediction = 0.245
+
+### Step 3: Calculate Error
+Using mean squared error:
+
+error = (prediction - target)²
+error = (0.245 - 0.9)²
+error = (-0.655)²
+error = 0.429025
+
+### Step 4: Backward Pass (Backpropagation)
+Now we'll calculate how each weight contributed to the error.
+
+First, calculate the output error derivative:
+output_error = 2 × (prediction - target)
+output_error = 2 × (0.245 - 0.9)
+output_error = 2 × (-0.655)
+output_error = -1.31
+
+Next, calculate how this error flows back to each hidden node:
+
+hidden1_error = output_error × wh1_o
+hidden1_error = -1.31 × 0.5
+hidden1_error = -0.655
+
+hidden2_error = output_error × wh2_o
+hidden2_error = -1.31 × 0.6
+hidden2_error = -0.786
+
+Apply the ReLU derivative. Since ReLU'(x) = 1 if x > 0, and 0 otherwise:
+- hidden1_output = 0.07 (positive, so derivative = 1)
+- hidden2_output = 0.35 (positive, so derivative = 1)
+
+hidden1_error_adjusted = hidden1_error × 1 = -0.655
+hidden2_error_adjusted = hidden2_error × 1 = -0.786
+
+### Step 5: Calculate Weight Gradients
+Now, calculate how much each weight should change:
+
+#### Output Layer Weights:
+dwh1_o = output_error × hidden1_output
+dwh1_o = -1.31 × 0.07
+dwh1_o = -0.0917
+
+dwh2_o = output_error × hidden2_output
+dwh2_o = -1.31 × 0.35
+dwh2_o = -0.4585
+
+#### Hidden Layer Weights:
+dw1_h1 = hidden1_error_adjusted × ocean_temperature
+dw1_h1 = -0.655 × 0.8
+dw1_h1 = -0.524
+
+dw2_h1 = hidden1_error_adjusted × acidity_pH
+dw2_h1 = -0.655 × 0.3
+dw2_h1 = -0.1965
+
+dw1_h2 = hidden2_error_adjusted × ocean_temperature
+dw1_h2 = -0.786 × 0.8
+dw1_h2 = -0.6288
+
+dw2_h2 = hidden2_error_adjusted × acidity_pH
+dw2_h2 = -0.786 × 0.3
+dw2_h2 = -0.2358
+
+### Step 6: Update Weights
+Using a learning rate (α) of 0.1:
+
+#### New Output Layer Weights:
+new_wh1_o = wh1_o - (α × dwh1_o)
+new_wh1_o = 0.5 - (0.1 × -0.0917)
+new_wh1_o = 0.5 + 0.00917
+new_wh1_o = 0.50917
+
+new_wh2_o = wh2_o - (α × dwh2_o)
+new_wh2_o = 0.6 - (0.1 × -0.4585)
+new_wh2_o = 0.6 + 0.04585
+new_wh2_o = 0.64585
+
+#### New Hidden Layer Weights:
+new_w1_h1 = w1_h1 - (α × dw1_h1)
+new_w1_h1 = 0.2 - (0.1 × -0.524)
+new_w1_h1 = 0.2 + 0.0524
+new_w1_h1 = 0.2524
+
+new_w2_h1 = w2_h1 - (α × dw2_h1)
+new_w2_h1 = -0.3 - (0.1 × -0.1965)
+new_w2_h1 = -0.3 + 0.01965
+new_w2_h1 = -0.28035
+
+new_w1_h2 = w1_h2 - (α × dw1_h2)
+new_w1_h2 = 0.4 - (0.1 × -0.6288)
+new_w1_h2 = 0.4 + 0.06288
+new_w1_h2 = 0.46288
+
+new_w2_h2 = w2_h2 - (α × dw2_h2)
+new_w2_h2 = 0.1 - (0.1 × -0.2358)
+new_w2_h2 = 0.1 + 0.02358
+new_w2_h2 = 0.12358
+
+### Step 7: Second Forward Pass with Updated Weights
+Let's calculate a new prediction using our updated weights:
+
+hidden1_input = (0.8 × 0.2524) + (0.3 × -0.28035)
+hidden1_input = 0.20192 - 0.084105
+hidden1_input = 0.117815
+
+hidden2_input = (0.8 × 0.46288) + (0.3 × 0.12358)
+hidden2_input = 0.370304 + 0.037074
+hidden2_input = 0.407378
+
+Apply ReLU:
+hidden1_output = ReLU(0.117815) = 0.117815
+hidden2_output = ReLU(0.407378) = 0.407378
+
+Calculate output:
+output_input = (0.117815 × 0.50917) + (0.407378 × 0.64585)
+output_input = 0.05999 + 0.26310
+output_input = 0.32309
+
+Our new prediction is 0.32309, which is closer to our target of 0.9 than our original prediction of 0.245.
+
+### Exercise for Practice
+Try calculating one more forward and backward pass with the updated weights. Calculate:
+1. The new prediction
+2. The new error
+3. The new gradients
+4. The updated weights after this second iteration
+
+This project demonstrates how errors propagate backward through a neural network, and how weights are adjusted to gradually improve predictions. The key insight is that through the chain rule, we can attribute responsibility for errors to weights even in deep layers of the network.
+## Project 2: Implementing a XOR Neural Network with Backpropagation
+
+### Learning Objective
+In this project, you'll implement a complete neural network that solves the XOR problem—a classic example that demonstrates the power of multi-layer networks and backpropagation. You'll see how a network can learn patterns that aren't linearly separable.
+
+### Problem Statement
+You're building an environmental monitoring system that needs to detect specific combinations of conditions that signal ecosystem distress. This is similar to an XOR problem, where certain combinations of inputs (but not others) trigger an alert.
+
+The XOR (exclusive OR) pattern is:
+- Input [0,0] → Output 0
+- Input [0,1] → Output 1
+- Input [1,0] → Output 1
+- Input [1,1] → Output 0
+
+In our environmental context, this could represent:
+- [low temperature, low pollution] → No ecosystem distress (0)
+- [low temperature, high pollution] → Ecosystem distress (1)
+- [high temperature, low pollution] → Ecosystem distress (1)
+- [high temperature, high pollution] → No ecosystem distress (0) (perhaps because certain remediation processes are automatically triggered)
+
+### Step 1: Set Up the Dataset
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# XOR dataset
+X = np.array([
+    [0, 0],  # Low temperature, low pollution
+    [0, 1],  # Low temperature, high pollution
+    [1, 0],  # High temperature, low pollution
+    [1, 1]   # High temperature, high pollution
+])
+
+y = np.array([
+    [0],  # No distress
+    [1],  # Distress
+    [1],  # Distress
+    [0]   # No distress
+])
+```
+
+### Step 2: Define the Neural Network Architecture
+We'll create a network with:
+- 2 input neurons (for the 2 features)
+- 2 hidden neurons with ReLU activation
+- 1 output neuron with sigmoid activation (for 0-1 probability output)
+
+```python
+# Activation functions
+def relu(x):
+    return np.maximum(0, x)
+
+def relu_derivative(x):
+    return np.where(x > 0, 1, 0)
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def sigmoid_derivative(x):
+    return x * (1 - x)
+```
+
+### Step 3: Initialize Weights and Hyperparameters
+
+```python
+# Set random seed for reproducibility
+np.random.seed(42)
+
+# Initialize weights with small random values
+weights_input_hidden = np.random.uniform(-0.5, 0.5, size=(2, 2))
+weights_hidden_output = np.random.uniform(-0.5, 0.5, size=(2, 1))
+
+# Hyperparameters
+learning_rate = 0.1
+epochs = 10000
+```
+
+### Step 4: Implement Forward and Backward Propagation
+
+```python
+# Lists to store metrics
+losses = []
+
+# Training loop
+for epoch in range(epochs):
+    # Forward pass
+    hidden_input = np.dot(X, weights_input_hidden)
+    hidden_output = relu(hidden_input)
+    
+    output_input = np.dot(hidden_output, weights_hidden_output)
+    predicted_output = sigmoid(output_input)
+    
+    # Calculate error
+    error = y - predicted_output
+    loss = np.mean(np.square(error))
+    losses.append(loss)
+    
+    # Backward pass
+    d_predicted_output = error * sigmoid_derivative(predicted_output)
+    
+    error_hidden_layer = d_predicted_output.dot(weights_hidden_output.T)
+    d_hidden_layer = error_hidden_layer * relu_derivative(hidden_output)
+    
+    # Update weights
+    weights_hidden_output += hidden_output.T.dot(d_predicted_output) * learning_rate
+    weights_input_hidden += X.T.dot(d_hidden_layer) * learning_rate
+    
+    # Print progress occasionally
+    if epoch % 1000 == 0:
+        print(f"Epoch: {epoch}, Loss: {loss}")
+```
+
+### Step 5: Evaluate and Visualize Results
+
+```python
+# After training, test the model
+hidden_input = np.dot(X, weights_input_hidden)
+hidden_output = relu(hidden_input)
+output_input = np.dot(hidden_output, weights_hidden_output)
+final_output = sigmoid(output_input)
+
+# Print results
+print("\nPredictions vs Actual:")
+for i in range(len(X)):
+    print(f"Input: {X[i]}, Predicted: {final_output[i][0]:.4f}, Actual: {y[i][0]}")
+
+# Plot decision boundary
+plt.figure(figsize=(10, 8))
+
+# Plot the training points
+plt.subplot(2, 2, 1)
+plt.scatter(X[:, 0], X[:, 1], c=y.reshape(-1), cmap=plt.cm.Spectral)
+plt.title('XOR Training Data')
+plt.xlabel('Temperature')
+plt.ylabel('Pollution')
+
+# Create a mesh grid to visualize decision boundary
+h = 0.01
+x_min, x_max = -0.1, 1.1
+y_min, y_max = -0.1, 1.1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                     np.arange(y_min, y_max, h))
+
+# Predict for each point in the mesh grid
+mesh_input = np.c_[xx.ravel(), yy.ravel()]
+Z_hidden = relu(np.dot(mesh_input, weights_input_hidden))
+Z = sigmoid(np.dot(Z_hidden, weights_hidden_output))
+Z = Z.reshape(xx.shape)
+
+# Plot decision boundary
+plt.subplot(2, 2, 2)
+plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral, alpha=0.8)
+plt.scatter(X[:, 0], X[:, 1], c=y.reshape(-1), cmap=plt.cm.Spectral, edgecolors='k')
+plt.title('Decision Boundary')
+plt.xlabel('Temperature')
+plt.ylabel('Pollution')
+
+# Plot loss over time
+plt.subplot(2, 1, 2)
+plt.plot(losses)
+plt.title('Training Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Mean Squared Error')
+plt.yscale('log')
+plt.tight_layout()
+plt.show()
+```
+
+### Step 6: Visualize Hidden Layer Representations
+
+```python
+# Let's visualize what the hidden neurons have learned
+plt.figure(figsize=(12, 5))
+
+# Hidden neuron 1
+plt.subplot(1, 2, 1)
+weights1 = weights_input_hidden[:, 0]
+h = 0.01
+x_min, x_max = -0.1, 1.1
+y_min, y_max = -0.1, 1.1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                     np.arange(y_min, y_max, h))
+
+Z = weights1[0] * xx + weights1[1] * yy
+plt.contourf(xx, yy, Z, cmap=plt.cm.RdBu, alpha=0.8)
+plt.scatter(X[:, 0], X[:, 1], c=y.reshape(-1), cmap=plt.cm.Spectral, edgecolors='k')
+plt.title('Hidden Neuron 1 Activation')
+plt.xlabel('Temperature')
+plt.ylabel('Pollution')
+
+# Hidden neuron 2
+plt.subplot(1, 2, 2)
+weights2 = weights_input_hidden[:, 1]
+Z = weights2[0] * xx + weights2[1] * yy
+plt.contourf(xx, yy, Z, cmap=plt.cm.RdBu, alpha=0.8)
+plt.scatter(X[:, 0], X[:, 1], c=y.reshape(-1), cmap=plt.cm.Spectral, edgecolors='k')
+plt.title('Hidden Neuron 2 Activation')
+plt.xlabel('Temperature')
+plt.ylabel('Pollution')
+
+plt.tight_layout()
+plt.show()
+
+# Print final weights for analysis
+print("\nFinal weights from inputs to hidden layer:")
+print(weights_input_hidden)
+print("\nFinal weights from hidden to output layer:")
+print(weights_hidden_output)
+```
+
+### Understanding XOR and Multi-Layer Networks
+
+The XOR problem demonstrates why we need multi-layer networks with nonlinear activation functions. Let's analyze what's happening:
+
+1. **Why Single-Layer Networks Fail**: A single-layer network can only create a linear decision boundary—a straight line separating the data. But XOR data points form a pattern that no single straight line can separate.
+
+2. **Hidden Layer Solution**: With a hidden layer, the network creates two separate linear boundaries (one from each hidden neuron), which can then be combined to form a non-linear boundary that correctly separates the XOR pattern.
+
+3. **ReLU Activation**: The ReLU function introduces the necessary non-linearity that allows our network to learn complex patterns.
+
+4. **Learning Process**: Initially, the network makes poor predictions. Through backpropagation:
+   - The error is propagated backward through the network
+   - Each weight is adjusted based on its contribution to the error
+   - Gradually, the hidden neurons specialize in detecting specific patterns
+   - The output layer combines these patterns to solve the XOR problem
+
+### Environmental Application
+
+In real environmental monitoring, many critical thresholds involve non-linear combinations of factors:
+
+- Algal blooms may occur only when temperature is high AND oxygen is low
+- Certain species migrations happen when daylight is short OR temperature drops below a threshold
+- Ecosystem collapse might be triggered by complex combinations of multiple stressors
+
+These scenarios cannot be modeled with simple linear relationships. Multi-layer networks with backpropagation provide the complexity needed to identify and respond to these patterns.
+
+### Extensions and Challenges
+
+1. **Add More Hidden Neurons**: Modify the code to use 3 or 4 neurons in the hidden layer. Does this improve performance or make it worse?
+
+2. **Try Different Activation Functions**: Replace ReLU with tanh or sigmoid in the hidden layer. How does this affect learning?
+
+3. **Create a More Complex Environmental Dataset**: Design an environmental dataset with 3-4 inputs and a complex non-linear relationship. Can your network learn it?
+
+4. **Implement Early Stopping**: Modify the training loop to include early stopping based on validation error to prevent overfitting.
+
+5. **Visualize Weight Changes**: Track and plot how the weights change during training to understand the learning dynamics.
+
+This project demonstrates how multi-layer networks can solve problems that simpler models cannot—a critical capability for modeling complex environmental systems with non-linear relationships and interactions.

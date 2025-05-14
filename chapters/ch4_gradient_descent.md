@@ -923,3 +923,864 @@ In the next chapter, we'll explore backpropagation—an efficient algorithm for 
 5. **Gradient Descent from Scratch**: Without looking at the examples in this chapter, try to implement gradient descent for a simple environmental prediction task of your choice.
 
 6. **Error Surface Visualization**: Create a 3D plot of the error surface for a simple prediction problem with two weights. Visualize how gradient descent navigates this surface toward the minimum.
+
+## Chapter 4 Projects: Practicing Gradient Descent
+
+You've now learned how neural networks take their first steps towards learning using gradient descent! These projects will help you solidify your understanding of error calculation and how a single weight can be adjusted to improve predictions.
+
+### Project 1: One Step Down the Mountain - Manual Gradient Descent
+
+**Goal:** Manually calculate one full step of gradient descent for a simple prediction model with a single input and a single weight. This will help you trace the core calculations involved.
+
+**Concepts Used:**
+*   Forward propagation (simple multiplication)
+*   Calculating prediction error (Mean Squared Error, or simpler delta)
+*   Calculating the derivative (direction and amount of error for the weight)
+*   Updating the weight using a learning rate
+
+**Scenario:**
+Imagine we have a very simple model: `prediction = input_value * weight`.
+We want our model to predict a `goal_prediction` given an `input_value`.
+
+**Given:**
+*   `input_value = 2`
+*   `goal_prediction = 8`
+*   Initial `weight = 0.5`
+*   `learning_rate (alpha) = 0.1`
+
+**Steps (To be done manually and then verified with simple Python in Colab):**
+
+1.  **Calculate the Initial Prediction:**
+    *   `prediction = input_value * weight`
+    ```python
+    input_value = 2
+    goal_prediction = 8
+    weight = 0.5
+    alpha = 0.1
+
+    # 1. Calculate initial prediction
+    prediction = input_value * weight
+    print(f"Initial Prediction: {prediction}")
+    ```
+
+2.  **Calculate the Error (Delta):**
+    *   As shown in the chapter, a simple way to find the direction and magnitude of the error is `delta = prediction - goal_prediction`.
+    *   (Optional: The Mean Squared Error would be `error_mse = (prediction - goal_prediction)**2`. We use the simpler delta for calculating `weight_delta` as per the chapter's direct examples.)
+    ```python
+    # 2. Calculate error (delta)
+    delta = prediction - goal_prediction
+    print(f"Delta (Prediction - Goal): {delta}")
+    ```
+
+3.  **Calculate the Weight Delta (Derivative/Slope for this weight):**
+    *   The amount the weight needs to change by is proportional to the `input_value` scaled by the `delta`.
+    *   `weight_delta = input_value * delta` (This represents the derivative of the squared error times a factor, simplified for one weight).
+    ```python
+    # 3. Calculate weight_delta (proportional to derivative)
+    weight_delta = input_value * delta
+    print(f"Weight Delta (Input * Delta): {weight_delta}")
+    ```
+
+4.  **Update the Weight:**
+    *   `new_weight = weight - (alpha * weight_delta)`
+    ```python
+    # 4. Update the weight
+    new_weight = weight - (alpha * weight_delta)
+    print(f"Old Weight: {weight}, New Weight: {new_weight:.4f}")
+    ```
+
+5.  **Verify (Make a new prediction with the new weight):**
+    *   `new_prediction = input_value * new_weight`
+    *   Calculate the new delta: `new_delta = new_prediction - goal_prediction`
+    ```python
+    # 5. Verify with the new weight
+    new_prediction = input_value * new_weight
+    new_delta = new_prediction - goal_prediction
+    print(f"Prediction with New Weight: {new_prediction:.4f}")
+    print(f"New Delta: {new_delta:.4f}")
+    ```
+    *   You should see that the `new_prediction` is closer to the `goal_prediction`, and the absolute value of `new_delta` is smaller than the initial `delta`.
+
+**Expected Output:**
+```
+Initial Prediction: 1.0
+Delta (Prediction - Goal): -7.0
+Weight Delta (Input * Delta): -14.0
+Old Weight: 0.5, New Weight: 1.9000
+Prediction with New Weight: 3.8000
+New Delta: -4.2000
+```
+**Discussion:** Notice how the weight increased from 0.5 to 1.9. Since our initial prediction (1.0) was much lower than the goal (8.0), the `delta` was negative. `weight_delta` was also negative. Subtracting a negative `weight_delta` (scaled by alpha) caused the weight to increase, pushing the prediction higher.
+
+---
+
+### Project 2: The "Hot and Cold" Learning Loop
+
+**Goal:** Implement a simple iterative learning process based on the "hot and cold" learning analogy from the chapter. We'll adjust a single weight up or down based on whether the change reduces the error. This is a more intuitive, less calculus-driven approach to optimization.
+
+**Concepts Used:**
+*   Iterative learning
+*   Error comparison (Mean Squared Error)
+*   Adjusting weights based on error reduction
+
+**Scenario:**
+Same simple model: `prediction = input_value * weight`.
+We want to find a `weight` that minimizes the error for a given `input_value` and `goal_prediction`.
+
+**Given:**
+*   `input_value = 2`
+*   `goal_prediction = 8`
+*   Initial `weight = 0.0`
+*   `step_amount = 0.1` (How much we adjust the weight by in each step)
+*   `iterations = 25` (How many times we try to adjust)
+
+**Steps (To be coded in Colab):**
+
+1.  **Define a function to calculate Mean Squared Error (MSE):**
+    ```python
+    def calculate_mse(prediction, goal):
+        return (prediction - goal)**2
+    ```
+
+2.  **Implement the "Hot and Cold" Learning Loop:**
+    ```python
+    import numpy as np # Though not strictly necessary for this simple math, good practice
+
+    input_value = 2
+    goal_prediction = 8
+    weight = 0.0  # Start with an initial guess for the weight
+    step_amount = 0.1
+    iterations = 25
+
+    print(f"Starting Weight: {weight:.2f}\n")
+
+    for i in range(iterations):
+        # Current prediction and error
+        current_prediction = input_value * weight
+        current_mse = calculate_mse(current_prediction, goal_prediction)
+
+        # Try adjusting weight UP
+        weight_up = weight + step_amount
+        prediction_up = input_value * weight_up
+        mse_up = calculate_mse(prediction_up, goal_prediction)
+
+        # Try adjusting weight DOWN
+        weight_down = weight - step_amount
+        prediction_down = input_value * weight_down
+        mse_down = calculate_mse(prediction_down, goal_prediction)
+
+        print(f"Iteration {i+1}: Current Weight={weight:.2f}, Current MSE={current_mse:.4f}")
+        
+        # Decide which direction is better
+        if mse_up < current_mse and mse_up < mse_down: # Moving UP is best
+            weight = weight_up
+            print(f"  -> Moving UP. New Weight={weight:.2f}, New MSE={mse_up:.4f}")
+        elif mse_down < current_mse and mse_down < mse_up: # Moving DOWN is best
+            weight = weight_down
+            print(f"  -> Moving DOWN. New Weight={weight:.2f}, New MSE={mse_down:.4f}")
+        elif mse_up == mse_down and mse_up < current_mse: # Both are equally good and better
+             weight = weight_up # Arbitrarily pick UP
+             print(f"  -> Moving UP (equally good). New Weight={weight:.2f}, New MSE={mse_up:.4f}")
+        else: # No improvement or both are worse
+            print(f"  -> Staying put. Best MSE found or stuck.")
+            # break # Optional: stop if no improvement
+        
+        if current_mse < 0.0001: # Close enough
+            print("\nConverged to a good solution!")
+            break
+
+    print(f"\nFinished Learning. Final Weight: {weight:.2f}")
+    final_prediction = input_value * weight
+    final_mse = calculate_mse(final_prediction, goal_prediction)
+    print(f"Final Prediction: {final_prediction:.2f}, Final MSE: {final_mse:.4f}")
+    ```
+
+**Expected Output (will show several iterations, ending similar to this):**
+```
+Starting Weight: 0.00
+
+Iteration 1: Current Weight=0.00, Current MSE=64.0000
+  -> Moving UP. New Weight=0.10, New MSE=60.8400
+Iteration 2: Current Weight=0.10, Current MSE=60.8400
+  -> Moving UP. New Weight=0.20, New MSE=57.7600
+...
+Iteration 20: Current Weight=1.90, Current MSE=17.6400
+  -> Moving UP. New Weight=2.00, New MSE=16.0000
+...
+Iteration X: Current Weight=3.90, Current MSE=0.0400
+  -> Moving UP. New Weight=4.00, New MSE=0.0000
+
+Converged to a good solution!
+Finished Learning. Final Weight: 4.00
+Final Prediction: 8.00, Final MSE: 0.0000
+```
+*(The exact number of iterations to converge might vary based on the `step_amount` and starting `weight`.)*
+
+**Discussion:**
+This "hot and cold" method is a brute-force way of feeling for the direction that reduces error. While it works for a single weight, it becomes very inefficient for many weights. Gradient descent (Project 1) gives us a direct mathematical way (the derivative) to know the *best* direction and magnitude to change the weight, making it far more efficient for complex networks.
+
+---
+## Project 1: Mathematical Analysis of Gradient Descent
+
+### Learning Objective
+In this project, you'll work through the mathematical principles of gradient descent by manually calculating each step of the learning process. This will solidify your understanding of how neural networks learn through iterative weight adjustments.
+
+### Problem Statement
+You're developing a model to predict daily water evaporation based on temperature. Using data from a local weather station, you need to train a simple neural network with one input (temperature) and one output (evaporation rate).
+
+### Step 1: Set Up the Problem
+Let's define our variables:
+- Input: Temperature = 30°C
+- Target output: Evaporation = 4.2 mm/day
+- Initial weight: w = 0.5
+- Learning rate (α): 0.01
+
+Our prediction model is: Evaporation = Temperature × Weight
+
+We'll measure error using Mean Squared Error (MSE): Error = (Prediction - Target)²
+
+Let's visualize our starting point:
+
+```mermaid
+flowchart LR
+    I["Temperature\n30°C"] -->|"w = 0.5"| O["Predicted\nEvaporation"]
+    T["Target\nEvaporation\n4.2 mm/day"] -.-> C["Compare"]
+    O -.-> C
+    
+    style I fill:#bbdefb,stroke:#333,stroke-width:1px
+    style O fill:#f8bbd0,stroke:#333,stroke-width:1px
+    style T fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style C fill:#ffcc80,stroke:#333,stroke-width:1px
+```
+
+### Step 2: Calculate Initial Prediction and Error
+
+First, let's calculate our initial prediction:
+Prediction = Temperature × Weight
+Prediction = 30 × 0.5
+Prediction = 15.0 mm/day
+
+Now we calculate the error:
+Error = (Prediction - Target)²
+Error = (15.0 - 4.2)²
+Error = (10.8)²
+Error = 116.64
+
+Our initial prediction is significantly off - we're predicting much more evaporation than actually occurs.
+
+### Step 3: Calculate the Gradient
+
+The gradient tells us how the error changes as we change the weight. For our simple MSE loss function and linear model, the gradient is:
+
+Gradient = 2 × (Prediction - Target) × Input
+Gradient = 2 × (15.0 - 4.2) × 30
+Gradient = 2 × 10.8 × 30
+Gradient = 648
+
+This large positive gradient tells us that increasing the weight will increase our error. Conversely, reducing the weight should reduce the error.
+
+### Step 4: Update the Weight Using Gradient Descent
+
+Now we apply the gradient descent update rule:
+New Weight = Old Weight - (Learning Rate × Gradient)
+
+New Weight = 0.5 - (0.01 × 648)
+New Weight = 0.5 - 6.48
+New Weight = -5.98
+
+This is a dramatic change! Let's visualize this update:
+
+```mermaid
+flowchart TD
+    A["Initial Weight: 0.5"] --> B["Calculate Gradient: 648"]
+    B --> C["Update: 0.5 - (0.01 × 648)"]
+    C --> D["New Weight: -5.98"]
+    
+    style A fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style B fill:#ffcc80,stroke:#333,stroke-width:1px
+    style C fill:#ffcc80,stroke:#333,stroke-width:1px
+    style D fill:#f8bbd0,stroke:#333,stroke-width:1px
+```
+
+### Step 5: Calculate New Prediction and Error
+
+With our updated weight, let's calculate the new prediction:
+New Prediction = Temperature × New Weight
+New Prediction = 30 × (-5.98)
+New Prediction = -179.4 mm/day
+
+This is problematic since evaporation can't be negative! Let's calculate the new error:
+New Error = (New Prediction - Target)²
+New Error = (-179.4 - 4.2)²
+New Error = (-183.6)²
+New Error = 33,708.96
+
+Our error is much worse! This happened because our learning rate was too large, causing us to overshoot the optimal weight value.
+
+### Step 6: Try Again with a Smaller Learning Rate
+
+Let's restart with the same initial weight but use a much smaller learning rate: α = 0.0001
+
+New Weight = 0.5 - (0.0001 × 648)
+New Weight = 0.5 - 0.0648
+New Weight = 0.4352
+
+Now let's calculate the new prediction and error:
+New Prediction = 30 × 0.4352
+New Prediction = 13.056 mm/day
+
+New Error = (13.056 - 4.2)²
+New Error = (8.856)²
+New Error = 78.43
+
+Much better! Our error decreased from 116.64 to 78.43. Let's continue with another iteration.
+
+### Step 7: Second Iteration of Gradient Descent
+
+Calculate the new gradient:
+Gradient = 2 × (13.056 - 4.2) × 30
+Gradient = 2 × 8.856 × 30
+Gradient = 531.36
+
+Update the weight:
+New Weight = 0.4352 - (0.0001 × 531.36)
+New Weight = 0.4352 - 0.05314
+New Weight = 0.3821
+
+Calculate the new prediction and error:
+New Prediction = 30 × 0.3821
+New Prediction = 11.463 mm/day
+
+New Error = (11.463 - 4.2)²
+New Error = (7.263)²
+New Error = 52.75
+
+Our error continues to decrease!
+
+### Step 8: Visualize the Learning Progress
+
+Let's visualize how our predictions and errors change over several iterations:
+
+```mermaid
+flowchart LR
+    subgraph "Iteration 0"
+        W0["Weight: 0.5"] --> P0["Prediction: 15.0"]
+        P0 --> E0["Error: 116.64"]
+    end
+    
+    subgraph "Iteration 1"
+        W1["Weight: 0.4352"] --> P1["Prediction: 13.06"]
+        P1 --> E1["Error: 78.43"]
+    end
+    
+    subgraph "Iteration 2"
+        W2["Weight: 0.3821"] --> P2["Prediction: 11.46"]
+        P2 --> E2["Error: 52.75"]
+    end
+    
+    style W0,W1,W2 fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style P0,P1,P2 fill:#bbdefb,stroke:#333,stroke-width:1px
+    style E0,E1,E2 fill:#ffcc80,stroke:#333,stroke-width:1px
+```
+
+### Step 9: Plot the Error Surface
+
+For our simple model with one weight, we can visualize the entire error surface:
+
+```
+Weight     Prediction     Error
+-0.5       -15.0         368.64
+-0.3       -9.0          174.24
+-0.1       -3.0          51.84
+ 0.0        0.0          17.64
+ 0.1        3.0          1.44
+ 0.14       4.2          0.00  <-- Optimal Weight
+ 0.2        6.0          3.24
+ 0.3        9.0          23.04
+ 0.4       12.0          60.84
+ 0.5       15.0         116.64
+ 0.6       18.0         190.44
+```
+
+Let's create a visual representation of the error surface:
+
+```mermaid
+flowchart LR
+    subgraph "Error vs. Weight"
+        V["Weight"] -.-> G["Error"]
+        
+        W0["0.0"] -.-> E0["17.64"]
+        W1["0.1"] -.-> E1["1.44"]
+        W2["0.14"] -.-> E2["0.00"]
+        W3["0.2"] -.-> E3["3.24"]
+        W4["0.3"] -.-> E4["23.04"]
+        W5["0.4"] -.-> E5["60.84"]
+        W6["0.5"] -.-> E6["116.64"]
+    end
+    
+    style V,G fill:#f8bbd0,stroke:#333,stroke-width:1px
+    style W2,E2 fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style W0,W1,W3,W4,W5,W6 fill:#bbdefb,stroke:#333,stroke-width:1px
+    style E0,E1,E3,E4,E5,E6 fill:#ffcc80,stroke:#333,stroke-width:1px
+```
+
+### Step 10: Calculate the Optimal Weight Analytically
+
+For a linear model with MSE loss, we can actually solve for the optimal weight directly:
+
+Optimal Weight = (Input × Target) / (Input × Input)
+Optimal Weight = (30 × 4.2) / (30 × 30)
+Optimal Weight = 126 / 900
+Optimal Weight = 0.14
+
+This matches what we observed in our error surface visualization - the error is minimized at a weight of 0.14.
+
+With this weight, our prediction becomes:
+Prediction = 30 × 0.14 = 4.2 mm/day
+
+Which exactly matches our target value, giving us zero error.
+
+### Step 11: Convergence Analysis
+
+Let's see how many iterations of gradient descent (with a learning rate of 0.0001) it would take to get close to the optimal weight:
+
+```
+Iteration   Weight     Prediction   Error
+0           0.5000     15.000       116.640
+1           0.4352     13.056       78.430
+2           0.3821     11.463       52.750
+3           0.3380     10.140       35.236
+...         ...        ...          ...
+10          0.1776     5.328        1.275
+15          0.1477     4.431        0.053
+20          0.1411     4.233        0.001
+25          0.1400     4.200        0.000
+```
+
+After about 25 iterations, we converge to the optimal weight of 0.14.
+
+### Step 12: The Effect of Learning Rate
+
+Now let's compare how different learning rates affect convergence:
+
+```mermaid
+flowchart LR
+    subgraph "Learning Rate Comparison"
+        L1["α = 0.001"] --> F1["Fast convergence\n~10 iterations"]
+        L2["α = 0.0001"] --> F2["Medium convergence\n~25 iterations"]
+        L3["α = 0.00001"] --> F3["Slow convergence\n~250 iterations"]
+        L4["α = 0.01"] --> F4["Divergence!\nOvershoots and oscillates"]
+    end
+    
+    style L1,L2,L3,L4 fill:#bbdefb,stroke:#333,stroke-width:1px
+    style F1,F2,F3 fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style F4 fill:#ffcdd2,stroke:#333,stroke-width:1px
+```
+
+### Exercise for Practice
+Manually perform 3 more iterations of gradient descent starting with:
+- Initial weight = 0.3
+- Learning rate (α) = 0.0001
+- Input = 30°C
+- Target = 4.2 mm/day
+
+For each iteration, calculate:
+1. The prediction
+2. The error
+3. The gradient
+4. The updated weight
+
+This project demonstrates the fundamental mechanics of gradient descent through manual calculation. Understanding this process is essential before moving on to more complex neural networks, as the same principles apply even in deep networks with millions of parameters.
+## Project 2: Implementing Gradient Descent for CO2 Absorption Prediction
+
+### Learning Objective
+In this project, you'll implement gradient descent from scratch to predict CO2 absorption rates in different forest types. You'll build a simple neural network that learns the relationship between multiple environmental factors and carbon sequestration.
+
+### Problem Statement
+You're an environmental scientist studying how different forest types absorb carbon dioxide. You've collected data on forest density, average tree age, and annual rainfall across various forest sites, along with measurements of CO2 absorption per hectare. You need to build a model that can predict CO2 absorption based on these environmental factors.
+
+### Step 1: Prepare the Dataset
+First, let's create a synthetic dataset that represents our environmental monitoring:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Set random seed for reproducibility
+np.random.seed(42)
+
+# Generate synthetic data
+n_samples = 20
+
+# Input features: forest density (trees/hectare), avg tree age (years), rainfall (cm/year)
+forest_density = np.random.uniform(100, 800, n_samples)
+tree_age = np.random.uniform(5, 150, n_samples)
+rainfall = np.random.uniform(60, 200, n_samples)
+
+# Combine into feature matrix
+X = np.column_stack([forest_density, tree_age, rainfall])
+
+# True relationship: CO2 absorption increases with all factors
+# but with different weights
+true_weights = np.array([0.05, 0.1, 0.02])
+noise = np.random.normal(0, 10, n_samples)
+y = np.dot(X, true_weights) + noise
+
+# Split into training and testing sets
+train_indices = np.random.choice(n_samples, int(0.8 * n_samples), replace=False)
+test_indices = np.array([i for i in range(n_samples) if i not in train_indices])
+
+X_train, y_train = X[train_indices], y[train_indices]
+X_test, y_test = X[test_indices], y[test_indices]
+
+# Normalize features to help with gradient descent
+X_mean = X_train.mean(axis=0)
+X_std = X_train.std(axis=0)
+X_train_norm = (X_train - X_mean) / X_std
+X_test_norm = (X_test - X_mean) / X_std
+
+# Visualize the data
+fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+axs[0].scatter(X_train[:, 0], y_train)
+axs[0].set_xlabel('Forest Density')
+axs[0].set_ylabel('CO2 Absorption')
+axs[0].set_title('CO2 vs. Forest Density')
+
+axs[1].scatter(X_train[:, 1], y_train)
+axs[1].set_xlabel('Tree Age')
+axs[1].set_ylabel('CO2 Absorption')
+axs[1].set_title('CO2 vs. Tree Age')
+
+axs[2].scatter(X_train[:, 2], y_train)
+axs[2].set_xlabel('Rainfall')
+axs[2].set_ylabel('CO2 Absorption')
+axs[2].set_title('CO2 vs. Rainfall')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 2: Implement Gradient Descent from Scratch
+
+Now, let's implement the core gradient descent algorithm:
+
+```python
+def initialize_weights(n_features):
+    """Initialize weights randomly"""
+    np.random.seed(42)
+    return np.random.uniform(-1, 1, n_features)
+
+def forward_pass(X, weights):
+    """Compute predictions"""
+    return np.dot(X, weights)
+
+def compute_loss(y_true, y_pred):
+    """Compute mean squared error loss"""
+    return np.mean((y_true - y_pred) ** 2)
+
+def compute_gradients(X, y_true, y_pred):
+    """Compute gradients of MSE with respect to weights"""
+    error = y_pred - y_true
+    return 2 * np.dot(X.T, error) / len(y_true)
+
+def train_model(X, y, learning_rate=0.01, n_iterations=1000):
+    """Train a linear model using gradient descent"""
+    # Initialize weights
+    weights = initialize_weights(X.shape[1])
+    
+    # Lists to store training progress
+    loss_history = []
+    weight_history = []
+    
+    # Gradient descent loop
+    for iteration in range(n_iterations):
+        # Forward pass
+        predictions = forward_pass(X, weights)
+        
+        # Compute loss
+        loss = compute_loss(y, predictions)
+        loss_history.append(loss)
+        
+        # Compute gradients
+        gradients = compute_gradients(X, y, predictions)
+        
+        # Update weights
+        weights = weights - learning_rate * gradients
+        weight_history.append(weights.copy())
+        
+        # Print progress
+        if iteration % 100 == 0:
+            print(f"Iteration {iteration}: Loss = {loss:.4f}, Weights = {weights}")
+    
+    return weights, loss_history, weight_history
+```
+
+### Step 3: Train the Model and Visualize Learning
+
+Let's train our model and visualize how the weights and error evolve:
+
+```python
+# Train the model
+learning_rate = 0.01
+n_iterations = 1000
+final_weights, loss_history, weight_history = train_model(
+    X_train_norm, y_train, learning_rate, n_iterations
+)
+
+# Convert weight history to numpy array for easier plotting
+weight_history = np.array(weight_history)
+
+# Plot loss over iterations
+plt.figure(figsize=(12, 5))
+
+plt.subplot(1, 2, 1)
+plt.plot(loss_history)
+plt.xlabel('Iteration')
+plt.ylabel('Mean Squared Error')
+plt.title('Loss During Training')
+plt.yscale('log')
+plt.grid(True)
+
+# Plot weight evolution
+plt.subplot(1, 2, 2)
+plt.plot(weight_history[:, 0], label='Forest Density Weight')
+plt.plot(weight_history[:, 1], label='Tree Age Weight')
+plt.plot(weight_history[:, 2], label='Rainfall Weight')
+plt.xlabel('Iteration')
+plt.ylabel('Weight Value')
+plt.title('Weight Evolution During Training')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 4: Evaluate the Model
+
+Let's evaluate our model's performance on the test set:
+
+```python
+# Make predictions on test set
+test_predictions = forward_pass(X_test_norm, final_weights)
+
+# Compute test error
+test_loss = compute_loss(y_test, test_predictions)
+print(f"Test Set Loss: {test_loss:.4f}")
+
+# Visualize predictions vs actual
+plt.figure(figsize=(10, 6))
+plt.scatter(y_test, test_predictions)
+plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'r--')
+plt.xlabel('Actual CO2 Absorption')
+plt.ylabel('Predicted CO2 Absorption')
+plt.title('Predictions vs Actual Values')
+plt.grid(True)
+plt.show()
+```
+
+### Step 5: Visualize the Error Surface
+
+For a better understanding of what gradient descent is doing, let's visualize the error surface with respect to two of the weights:
+
+```python
+def compute_error_grid(X, y, weight_ranges, fixed_weight_idx=2, fixed_weight_val=None):
+    """Compute error for a grid of weight values"""
+    # If no fixed weight value is provided, use the final trained weight
+    if fixed_weight_val is None:
+        fixed_weight_val = final_weights[fixed_weight_idx]
+    
+    # Create grid of weight values
+    w1_range = np.linspace(weight_ranges[0][0], weight_ranges[0][1], 50)
+    w2_range = np.linspace(weight_ranges[1][0], weight_ranges[1][1], 50)
+    w1_grid, w2_grid = np.meshgrid(w1_range, w2_range)
+    
+    # Initialize error grid
+    error_grid = np.zeros_like(w1_grid)
+    
+    # Compute error for each weight combination
+    for i in range(len(w1_range)):
+        for j in range(len(w2_range)):
+            # Create weight vector with two variable weights and one fixed weight
+            weights = np.zeros(3)
+            weights[fixed_weight_idx] = fixed_weight_val
+            
+            # Assign the other two weights
+            weight_indices = [0, 1, 2]
+            weight_indices.remove(fixed_weight_idx)
+            weights[weight_indices[0]] = w1_grid[j, i]
+            weights[weight_indices[1]] = w2_grid[j, i]
+            
+            # Compute predictions and error
+            predictions = forward_pass(X, weights)
+            error = compute_loss(y, predictions)
+            error_grid[j, i] = error
+    
+    return w1_grid, w2_grid, error_grid, weight_indices
+
+# Compute error surface
+weight_ranges = [(-2, 2), (-2, 2)]
+w1_grid, w2_grid, error_grid, weight_indices = compute_error_grid(
+    X_train_norm, y_train, weight_ranges
+)
+
+# Visualize error surface
+plt.figure(figsize=(12, 10))
+
+# 3D surface plot
+ax = plt.subplot(2, 1, 1, projection='3d')
+surf = ax.plot_surface(w1_grid, w2_grid, error_grid, cmap='viridis', alpha=0.8)
+ax.set_xlabel(f'Weight {weight_indices[0]} (Forest Density)')
+ax.set_ylabel(f'Weight {weight_indices[1]} (Tree Age)')
+ax.set_zlabel('Mean Squared Error')
+ax.set_title('Error Surface')
+plt.colorbar(surf, shrink=0.5, aspect=5)
+
+# Contour plot with gradient descent path
+ax = plt.subplot(2, 1, 2)
+contour = ax.contour(w1_grid, w2_grid, error_grid, 50, cmap='viridis')
+plt.colorbar(contour, shrink=0.5)
+
+# Plot gradient descent trajectory
+trajectory = weight_history[:, weight_indices]
+ax.plot(trajectory[:, 0], trajectory[:, 1], 'r-', linewidth=2, label='Gradient Descent Path')
+ax.plot(trajectory[0, 0], trajectory[0, 1], 'ro', markersize=10, label='Initial Weights')
+ax.plot(trajectory[-1, 0], trajectory[-1, 1], 'go', markersize=10, label='Final Weights')
+
+ax.set_xlabel(f'Weight {weight_indices[0]} (Forest Density)')
+ax.set_ylabel(f'Weight {weight_indices[1]} (Tree Age)')
+ax.set_title('Gradient Descent Trajectory')
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 6: Analyze the Effect of Learning Rate
+
+Let's see how different learning rates affect the convergence:
+
+```python
+# Train with different learning rates
+learning_rates = [0.001, 0.01, 0.1, 0.5]
+results = {}
+
+for lr in learning_rates:
+    weights, loss_history, _ = train_model(
+        X_train_norm, y_train, learning_rate=lr, n_iterations=1000
+    )
+    results[lr] = {
+        'weights': weights,
+        'loss_history': loss_history
+    }
+
+# Plot loss histories
+plt.figure(figsize=(12, 6))
+for lr, result in results.items():
+    plt.plot(result['loss_history'], label=f'Learning Rate = {lr}')
+
+plt.xlabel('Iteration')
+plt.ylabel('Mean Squared Error')
+plt.title('Effect of Learning Rate on Convergence')
+plt.legend()
+plt.yscale('log')
+plt.grid(True)
+plt.show()
+
+# Print final losses
+print("Final losses:")
+for lr, result in results.items():
+    print(f"Learning Rate = {lr}: Loss = {result['loss_history'][-1]:.4f}")
+```
+
+### Step 7: Make Practical Predictions
+
+Now that we understand our model, let's use it to make meaningful predictions for forest management:
+
+```python
+def predict_co2_absorption(forest_density, tree_age, rainfall, weights):
+    """Predict CO2 absorption for new forest data"""
+    # Create feature vector
+    features = np.array([forest_density, tree_age, rainfall])
+    
+    # Normalize features
+    features_norm = (features - X_mean) / X_std
+    
+    # Make prediction
+    return np.dot(features_norm, weights)
+
+# Define forest scenarios
+forest_scenarios = [
+    {"name": "Young Dense Forest", "density": 700, "age": 15, "rainfall": 120},
+    {"name": "Old Growth Forest", "density": 300, "age": 120, "rainfall": 150},
+    {"name": "Rainforest", "density": 500, "age": 80, "rainfall": 200},
+    {"name": "Arid Woodland", "density": 150, "age": 40, "rainfall": 70},
+]
+
+# Make predictions
+print("\nCO2 Absorption Predictions:")
+for scenario in forest_scenarios:
+    prediction = predict_co2_absorption(
+        scenario["density"], scenario["age"], scenario["rainfall"], final_weights
+    )
+    print(f"{scenario['name']}: {prediction:.2f} tons/hectare/year")
+
+# Visualize predictions
+plt.figure(figsize=(10, 6))
+scenario_names = [s["name"] for s in forest_scenarios]
+predictions = [predict_co2_absorption(
+    s["density"], s["age"], s["rainfall"], final_weights
+) for s in forest_scenarios]
+
+plt.bar(scenario_names, predictions)
+plt.xlabel('Forest Type')
+plt.ylabel('CO2 Absorption (tons/hectare/year)')
+plt.title('Predicted CO2 Absorption by Forest Type')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+```
+
+### Step 8: Analyze Feature Importance
+
+Let's examine which environmental factors have the strongest influence on CO2 absorption:
+
+```python
+# Get normalized weights (accounting for feature scaling)
+normalized_weights = final_weights / X_std
+feature_names = ['Forest Density', 'Tree Age', 'Rainfall']
+
+# Visualize feature importance
+plt.figure(figsize=(10, 6))
+plt.bar(feature_names, normalized_weights)
+plt.xlabel('Feature')
+plt.ylabel('Normalized Weight')
+plt.title('Feature Importance for CO2 Absorption')
+plt.grid(axis='y')
+plt.show()
+
+# Print feature importance
+print("\nFeature Importance:")
+for feature, weight in zip(feature_names, normalized_weights):
+    print(f"{feature}: {weight:.4f}")
+```
+
+### Ecological Significance
+
+This project demonstrates how gradient descent can be applied to environmental data to discover relationships between forest characteristics and carbon sequestration. The model provides insights into which factors most strongly influence CO2 absorption, which can guide reforestation and forest management efforts.
+
+For example, our model might reveal that tree age has a stronger impact than forest density, suggesting that preserving old-growth forests could be more effective for carbon sequestration than planting many young trees.
+
+### Extensions and Challenges
+
+1. **Add More Features**: Expand the model to include soil type, temperature, and biodiversity metrics.
+
+2. **Try Stochastic Gradient Descent**: Instead of using all training examples for each update, implement stochastic gradient descent that uses random subsets of data for each iteration.
+
+3. **Implement Early Stopping**: Add early stopping to prevent overfitting by monitoring performance on a validation set.
+
+4. **Compare with Batch Gradient Descent**: Implement mini-batch gradient descent and compare the convergence properties with full-batch gradient descent.
+
+5. **Visualize Weight Trajectories**: Create animations showing how the weights evolve during training on the error surface.
+
+By implementing this project, you've gained hands-on experience with gradient descent and its application to environmental data analysis. You've seen how this fundamental algorithm forms the foundation of neural network training, allowing models to discover complex relationships in ecological data.

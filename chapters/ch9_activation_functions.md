@@ -1,8 +1,8 @@
 # Chapter 9: Activation Functions: The Neural Activation Cookbook: ReLU, Sigmoid, and Beyond
 
-> *"The river's path seems random, yet each bend and curve serves a purpose - to navigate obstacles, dissipate energy, and ultimately find the most efficient route to the sea."*
+> *"It is the mark of an educated mind to rest satisfied with the degree of precision which the nature of the subject admits."*
 > 
-> *\u2014Dr. Ernesto Lee, Environmental Data Scientist*
+> *Aristotle*
 
 ## Introduction: The Hidden Power of Nonlinearity
 
@@ -1358,3 +1358,580 @@ Create a deep network (10+ layers) and analyze how gradients flow through the ne
 #### Exercise 5: Periodic Data Modeling
 
 Test how different activation functions perform on data with inherent periodicity (like seasonal environmental patterns). Is there an advantage to using activation functions that capture periodicity?
+## Project 1: Mathematical Analysis of Activation Functions
+
+### Learning Objective
+In this project, you'll perform a detailed mathematical analysis of different activation functions and their effects on gradient flow in neural networks. You'll develop a deeper understanding of how activation functions transform signals and control gradient propagation.
+
+### Problem Statement
+You're developing a neural network to predict seasonal variations in river water quality based on multiple environmental factors. The choice of activation function is critical for capturing the nonlinear relationships in this ecological system. You need to understand how different activation functions affect signal propagation and gradient flow.
+
+### Step 1: Analyze Signal Propagation
+Let's examine how different activation functions transform input signals. Consider the input value x = 2.5, which might represent a normalized temperature measurement.
+
+Calculate the output for each of these activation functions:
+
+**ReLU**: f(x) = max(0, x)
+ReLU(2.5) = max(0, 2.5) = 2.5
+
+**Sigmoid**: f(x) = 1/(1 + e^(-x))
+Sigmoid(2.5) = 1/(1 + e^(-2.5))
+Sigmoid(2.5) = 1/(1 + 0.082)
+Sigmoid(2.5) ≈ 1/1.082
+Sigmoid(2.5) ≈ 0.924
+
+**Tanh**: f(x) = (e^x - e^(-x))/(e^x + e^(-x))
+Tanh(2.5) = (e^2.5 - e^(-2.5))/(e^2.5 + e^(-2.5))
+Tanh(2.5) = (12.182 - 0.082)/(12.182 + 0.082)
+Tanh(2.5) = 12.100/12.264
+Tanh(2.5) ≈ 0.987
+
+**Leaky ReLU**: f(x) = max(0.01x, x) with α = 0.01
+LeakyReLU(2.5) = max(0.01 × 2.5, 2.5) = max(0.025, 2.5) = 2.5
+
+**ELU**: f(x) = x if x > 0, else α(e^x - 1) with α = 1.0
+ELU(2.5) = 2.5 (since 2.5 > 0)
+
+Now calculate the output for the negative input x = -1.5:
+
+**ReLU**: ReLU(-1.5) = max(0, -1.5) = 0
+
+**Sigmoid**: Sigmoid(-1.5) = 1/(1 + e^(1.5))
+Sigmoid(-1.5) = 1/(1 + 4.482)
+Sigmoid(-1.5) ≈ 1/5.482
+Sigmoid(-1.5) ≈ 0.182
+
+**Tanh**: Tanh(-1.5) = (e^(-1.5) - e^(1.5))/(e^(-1.5) + e^(1.5))
+Tanh(-1.5) = (0.223 - 4.482)/(0.223 + 4.482)
+Tanh(-1.5) = -4.259/4.705
+Tanh(-1.5) ≈ -0.905
+
+**Leaky ReLU**: LeakyReLU(-1.5) = max(0.01 × (-1.5), -1.5) = max(-0.015, -1.5) = -0.015
+
+**ELU**: ELU(-1.5) = 1.0 × (e^(-1.5) - 1)
+ELU(-1.5) = 0.223 - 1
+ELU(-1.5) ≈ -0.777
+
+### Step 2: Analyze Gradient Propagation
+Now, let's examine how each activation function affects gradient propagation. Calculate the derivative of each function at the same input values.
+
+For x = 2.5:
+
+**ReLU**: ReLU'(x) = 1 if x > 0, else 0
+ReLU'(2.5) = 1
+
+**Sigmoid**: Sigmoid'(x) = Sigmoid(x) × (1 - Sigmoid(x))
+Sigmoid'(2.5) = 0.924 × (1 - 0.924)
+Sigmoid'(2.5) = 0.924 × 0.076
+Sigmoid'(2.5) ≈ 0.070
+
+**Tanh**: Tanh'(x) = 1 - (Tanh(x))²
+Tanh'(2.5) = 1 - (0.987)²
+Tanh'(2.5) = 1 - 0.974
+Tanh'(2.5) ≈ 0.026
+
+**Leaky ReLU**: LeakyReLU'(x) = 1 if x > 0, else α
+LeakyReLU'(2.5) = 1
+
+**ELU**: ELU'(x) = 1 if x > 0, else α × e^x
+ELU'(2.5) = 1
+
+For x = -1.5:
+
+**ReLU**: ReLU'(-1.5) = 0
+
+**Sigmoid**: Sigmoid'(-1.5) = 0.182 × (1 - 0.182)
+Sigmoid'(-1.5) = 0.182 × 0.818
+Sigmoid'(-1.5) ≈ 0.149
+
+**Tanh**: Tanh'(-1.5) = 1 - (-0.905)²
+Tanh'(-1.5) = 1 - 0.819
+Tanh'(-1.5) ≈ 0.181
+
+**Leaky ReLU**: LeakyReLU'(-1.5) = 0.01
+
+**ELU**: ELU'(-1.5) = α × e^(-1.5) = 1.0 × 0.223 ≈ 0.223
+
+### Step 3: Analyze Gradient Flow in a Deep Network
+Let's analyze how gradients propagate through multiple layers of a neural network. Consider a 5-layer network where each layer uses the same activation function. We'll track how an initial gradient of 1.0 propagates backward.
+
+Assume that for each layer, the activation function operates at the same input region (either consistently positive or consistently negative). Calculate the gradient magnitude after flowing through all 5 layers.
+
+For consistently positive activations (x = 2.5 in all layers):
+
+**ReLU**: 1.0 × 1 × 1 × 1 × 1 = 1.0
+
+**Sigmoid**: 1.0 × 0.070 × 0.070 × 0.070 × 0.070 ≈ 2.4 × 10^-7
+
+**Tanh**: 1.0 × 0.026 × 0.026 × 0.026 × 0.026 ≈ 4.6 × 10^-8
+
+**Leaky ReLU**: 1.0 × 1 × 1 × 1 × 1 = 1.0
+
+**ELU**: 1.0 × 1 × 1 × 1 × 1 = 1.0
+
+For consistently negative activations (x = -1.5 in all layers):
+
+**ReLU**: 1.0 × 0 × 0 × 0 × 0 = 0.0
+
+**Sigmoid**: 1.0 × 0.149 × 0.149 × 0.149 × 0.149 ≈ 4.9 × 10^-4
+
+**Tanh**: 1.0 × 0.181 × 0.181 × 0.181 × 0.181 ≈ 1.1 × 10^-3
+
+**Leaky ReLU**: 1.0 × 0.01 × 0.01 × 0.01 × 0.01 = 10^-8
+
+**ELU**: 1.0 × 0.223 × 0.223 × 0.223 × 0.223 ≈ 2.5 × 10^-3
+
+### Step 4: Visualize the Calculations
+
+Let's create a visual comparison of the gradient propagation:
+
+```mermaid
+flowchart LR
+    subgraph "Gradient Magnitude After 5 Layers (Positive Inputs)"
+        GP1["ReLU: 1.0"] --> |"100%"| GPR["Strong\nGradient"]
+        GP2["Leaky ReLU: 1.0"] --> |"100%"| GPR
+        GP3["ELU: 1.0"] --> |"100%"| GPR
+        GP4["Sigmoid: 0.000000024"] --> |"0.0000024%"| GPV["Vanishing\nGradient"]
+        GP5["Tanh: 0.0000000046"] --> |"0.00000046%"| GPV
+    end
+    
+    subgraph "Gradient Magnitude After 5 Layers (Negative Inputs)"
+        GN1["ReLU: 0.0"] --> |"0%"| GND["Dead\nNeuron"]
+        GN2["Leaky ReLU: 0.00000001"] --> |"0.000001%"| GNW["Weak\nGradient"]
+        GN3["ELU: 0.0025"] --> |"0.25%"| GNM["Moderate\nGradient"]
+        GN4["Sigmoid: 0.00049"] --> |"0.049%"| GNW
+        GN5["Tanh: 0.0011"] --> |"0.11%"| GNM
+    end
+    
+    style GP1,GP2,GP3 fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style GP4,GP5 fill:#ffcdd2,stroke:#333,stroke-width:1px
+    style GPR fill:#c8e6c9,stroke:#333,stroke-width:1px
+    style GPV fill:#ffcdd2,stroke:#333,stroke-width:1px
+    
+    style GN1 fill:#ffcdd2,stroke:#333,stroke-width:1px
+    style GN2,GN4 fill:#ffe0b2,stroke:#333,stroke-width:1px
+    style GN3,GN5 fill:#e1bee7,stroke:#333,stroke-width:1px
+    style GND fill:#ffcdd2,stroke:#333,stroke-width:1px
+    style GNW fill:#ffe0b2,stroke:#333,stroke-width:1px
+    style GNM fill:#e1bee7,stroke:#333,stroke-width:1px
+```
+
+### Step 5: Analyze and Compare Activation Behavior
+
+Based on our calculations, we can draw several key insights:
+
+1. **Gradient Magnitude Preservation**:
+   - ReLU, Leaky ReLU, and ELU perfectly preserve gradients for positive inputs
+   - Sigmoid and tanh severely reduce gradient magnitude even for positive inputs
+   - For negative inputs, ReLU completely blocks gradient flow ("dying ReLU" problem)
+   - ELU provides the best gradient flow for negative inputs among the analyzed functions
+
+2. **Signal Transformation**:
+   - ReLU, Leaky ReLU, and ELU maintain the original signal scale for positive inputs
+   - Sigmoid and tanh compress inputs into bounded ranges, losing magnitude information
+   - For negative inputs, only ReLU completely loses information (outputs zero)
+   - ELU provides smooth negative values proportional to input magnitude
+
+3. **Implications for Deep Networks**:
+   - ReLU networks may suffer from dead neurons in layers where inputs are predominantly negative
+   - Sigmoid and tanh networks will face vanishing gradients in deep architectures
+   - Leaky ReLU allows gradients to flow for negative inputs but at greatly reduced magnitude
+   - ELU provides the best balance of gradient flow for both positive and negative inputs
+
+### Step 6: Application to River Water Quality Prediction
+
+For your river water quality prediction task, consider these implications:
+
+1. **If seasonal patterns create both positive and negative normalized inputs**:
+   - ReLU might lose information during winter months (when normalized temperatures are negative)
+   - ELU or Leaky ReLU would be better choices to preserve seasonal patterns
+
+2. **If your network needs to be deep** (to capture complex ecological interactions):
+   - Avoid sigmoid and tanh in deep hidden layers due to vanishing gradients
+   - Consider using ELU or a ReLU variant
+
+3. **If interpretability of layer outputs is important**:
+   - Bounded functions like sigmoid or tanh produce consistent output scales
+   - Unbounded functions require more careful normalization between layers
+
+### Exercise for Practice
+Calculate the output and gradient for the Swish activation function: f(x) = x × sigmoid(βx), where β = 1.0, for inputs x = 2.5 and x = -1.5. Then compare how a gradient of 1.0 would propagate through 5 layers using this activation function.
+
+Swish(x) = x × sigmoid(x)
+Swish'(x) = sigmoid(x) + x × sigmoid(x) × (1 - sigmoid(x))
+
+This project demonstrates the mathematical principles behind activation functions and their critical impact on neural network behavior. Understanding these details helps you make informed choices when designing networks for environmental applications.
+## Project 2: Implementing Custom Activation Functions for Environmental Data
+
+### Learning Objective
+In this project, you'll implement and compare different activation functions on an environmental dataset. You'll also create a custom activation function designed specifically for seasonal ecological data.
+
+### Problem Statement
+You're analyzing a dataset of seasonal algae growth in a lake ecosystem, which shows strong periodic patterns throughout the year. Standard activation functions might not capture these seasonal patterns effectively. You'll implement and test various activation functions, including a custom one designed for seasonal data.
+
+### Step 1: Set Up the Project Environment
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Input, Lambda
+from tensorflow.keras import backend as K
+import pandas as pd
+```
+
+### Step 2: Create a Synthetic Seasonal Dataset
+
+```python
+# Generate synthetic seasonal data with ecological patterns
+def generate_seasonal_data(n_years=5, samples_per_year=52):
+    n_samples = n_years * samples_per_year
+    
+    # Time index (weeks)
+    time = np.linspace(0, n_years, n_samples)
+    
+    # Temperature: seasonal pattern with some random variation
+    temperature = 20 + 15 * np.sin(2 * np.pi * time) + np.random.normal(0, 2, n_samples)
+    
+    # Nutrient levels: higher in spring/fall, lower in summer/winter
+    nutrients = 10 + 5 * np.sin(4 * np.pi * time + np.pi/4) + np.random.normal(0, 1, n_samples)
+    
+    # Sunlight hours: seasonal pattern
+    sunlight = 12 + 4 * np.sin(2 * np.pi * time - np.pi/8) + np.random.normal(0, 0.5, n_samples)
+    
+    # Algae growth: complex relationship with temperature, nutrients, and sunlight
+    algae = (0.3 * temperature + 0.5 * nutrients + 0.2 * sunlight) * (1 + 0.2 * np.sin(2 * np.pi * time - np.pi/6))
+    algae += np.random.normal(0, 5, n_samples)
+    
+    # Create features and target arrays
+    X = np.column_stack([temperature, nutrients, sunlight])
+    y = algae
+    
+    return X, y, time
+
+# Generate data
+X, y, time = generate_seasonal_data()
+
+# Split data: use first 4 years for training, last year for testing
+train_size = int(0.8 * len(X))
+X_train, X_test = X[:train_size], X[train_size:]
+y_train, y_test = y[:train_size], y[train_size:]
+time_train, time_test = time[:train_size], time[train_size:]
+
+# Normalize data
+X_mean, X_std = X_train.mean(axis=0), X_train.std(axis=0)
+y_mean, y_std = y_train.mean(), y_train.std()
+
+X_train_norm = (X_train - X_mean) / X_std
+X_test_norm = (X_test - X_mean) / X_std
+y_train_norm = (y_train - y_mean) / y_std
+y_test_norm = (y_test - y_mean) / y_std
+
+# Visualize the dataset
+plt.figure(figsize=(12, 8))
+
+plt.subplot(4, 1, 1)
+plt.plot(time, X[:, 0])
+plt.title('Temperature')
+plt.ylabel('°C')
+
+plt.subplot(4, 1, 2)
+plt.plot(time, X[:, 1])
+plt.title('Nutrients')
+plt.ylabel('mg/L')
+
+plt.subplot(4, 1, 3)
+plt.plot(time, X[:, 2])
+plt.title('Sunlight')
+plt.ylabel('Hours')
+
+plt.subplot(4, 1, 4)
+plt.plot(time, y)
+plt.title('Algae Growth')
+plt.ylabel('Index')
+plt.xlabel('Years')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 3: Implement Standard and Custom Activation Functions
+
+```python
+def relu(x):
+    return tf.nn.relu(x)
+
+def leaky_relu(x, alpha=0.1):
+    return tf.maximum(alpha * x, x)
+
+def elu(x, alpha=1.0):
+    return tf.where(x > 0, x, alpha * (tf.exp(x) - 1))
+
+def sigmoid(x):
+    return tf.nn.sigmoid(x)
+
+def tanh(x):
+    return tf.nn.tanh(x)
+
+# Custom activation: "Seasonal" activation function
+# This combines sine wave patterns with ReLU to capture seasonality
+def seasonal_activation(x, frequency=1.0):
+    # Base response with ReLU
+    base = tf.nn.relu(x)
+    # Add seasonal component (sine wave pattern)
+    seasonal = tf.sin(frequency * np.pi * x) * 0.2 * tf.abs(x)
+    return base + seasonal
+```
+
+### Step 4: Create Models with Different Activation Functions
+
+```python
+def create_model(activation, input_shape):
+    model = Sequential([
+        Input(shape=(input_shape,)),
+        Dense(16, activation=activation),
+        Dense(8, activation=activation),
+        Dense(1, activation='linear')  # Linear activation for regression output
+    ])
+    
+    model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+    return model
+
+# Create a model with the custom seasonal activation
+def create_seasonal_model(input_shape, frequency=1.0):
+    model = Sequential([
+        Input(shape=(input_shape,)),
+        Dense(16, use_bias=True),
+        Lambda(lambda x: seasonal_activation(x, frequency)),
+        Dense(8, use_bias=True),
+        Lambda(lambda x: seasonal_activation(x, frequency)),
+        Dense(1, activation='linear')
+    ])
+    
+    model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+    return model
+```
+
+### Step 5: Train and Evaluate Models
+
+```python
+# Training parameters
+batch_size = 32
+epochs = 100
+input_shape = X_train_norm.shape[1]
+
+# Create and train models with different activation functions
+activation_functions = {
+    'relu': relu,
+    'leaky_relu': leaky_relu,
+    'elu': elu,
+    'sigmoid': sigmoid,
+    'tanh': tanh
+}
+
+models = {}
+histories = {}
+
+for name, activation in activation_functions.items():
+    print(f"\nTraining model with {name} activation...")
+    models[name] = create_model(activation, input_shape)
+    histories[name] = models[name].fit(
+        X_train_norm, y_train_norm,
+        batch_size=batch_size,
+        epochs=epochs,
+        validation_split=0.2,
+        verbose=0
+    )
+    
+# Train the seasonal model
+print("\nTraining model with seasonal activation...")
+models['seasonal'] = create_seasonal_model(input_shape)
+histories['seasonal'] = models['seasonal'].fit(
+    X_train_norm, y_train_norm,
+    batch_size=batch_size,
+    epochs=epochs,
+    validation_split=0.2,
+    verbose=0
+)
+```
+
+### Step 6: Compare Model Performance
+
+```python
+# Evaluate models on test data
+results = {}
+for name, model in models.items():
+    score = model.evaluate(X_test_norm, y_test_norm, verbose=0)
+    results[name] = {
+        'loss': score[0],
+        'mae': score[1]
+    }
+    
+# Display results
+print("\nTest Set Performance:")
+for name, metrics in results.items():
+    print(f"{name.upper()}: MSE = {metrics['loss']:.4f}, MAE = {metrics['mae']:.4f}")
+
+# Plot learning curves
+plt.figure(figsize=(15, 10))
+
+for i, (name, history) in enumerate(histories.items(), 1):
+    plt.subplot(2, 3, i)
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title(f'{name.upper()} Activation')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.yscale('log')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 7: Visualize Predictions on Seasonal Data
+
+```python
+# Make predictions with all models
+predictions = {}
+for name, model in models.items():
+    pred = model.predict(X_test_norm, verbose=0)
+    # Denormalize predictions
+    predictions[name] = pred * y_std + y_mean
+    
+# Plot predictions for the test period
+plt.figure(figsize=(12, 8))
+
+# Actual values
+plt.plot(time_test, y_test, 'k-', linewidth=2, label='Actual')
+
+# Predictions
+colors = ['b', 'g', 'r', 'c', 'm', 'y']
+for (name, pred), color in zip(predictions.items(), colors):
+    plt.plot(time_test, pred, color, linestyle='--', label=f'{name}')
+
+plt.title('Algae Growth Predictions')
+plt.xlabel('Years')
+plt.ylabel('Algae Growth Index')
+plt.legend()
+plt.grid(True)
+plt.show()
+```
+
+### Step 8: Analyze Activation Behavior on Seasonal Data
+
+```python
+# Visualize how each activation function transforms the input
+x_range = np.linspace(-3, 3, 1000)
+
+plt.figure(figsize=(15, 10))
+
+# Standard activation functions
+plt.subplot(2, 1, 1)
+plt.plot(x_range, [relu(x) for x in x_range], 'r-', label='ReLU')
+plt.plot(x_range, [leaky_relu(x) for x in x_range], 'g-', label='Leaky ReLU')
+plt.plot(x_range, [elu(x) for x in x_range], 'b-', label='ELU')
+plt.plot(x_range, [sigmoid(x) for x in x_range], 'm-', label='Sigmoid')
+plt.plot(x_range, [tanh(x) for x in x_range], 'c-', label='Tanh')
+plt.title('Standard Activation Functions')
+plt.xlabel('Input')
+plt.ylabel('Output')
+plt.legend()
+plt.grid(True)
+
+# Custom seasonal activation function
+plt.subplot(2, 1, 2)
+plt.plot(x_range, [seasonal_activation(x) for x in x_range], 'r-', label='Seasonal (freq=1.0)')
+plt.plot(x_range, [seasonal_activation(x, frequency=2.0) for x in x_range], 'g-', label='Seasonal (freq=2.0)')
+plt.plot(x_range, [relu(x) for x in x_range], 'k--', label='ReLU (reference)')
+plt.title('Custom Seasonal Activation Function')
+plt.xlabel('Input')
+plt.ylabel('Output')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 9: Extract and Visualize Learned Features
+
+```python
+# Extract weights from the first layer for each model
+features = {}
+for name, model in models.items():
+    weights, biases = model.layers[1].get_weights()
+    features[name] = weights
+
+# Visualize the first layer weights for each model
+plt.figure(figsize=(15, 8))
+
+feature_names = ['Temperature', 'Nutrients', 'Sunlight']
+for i, (name, feature_weights) in enumerate(features.items(), 1):
+    plt.subplot(2, 3, i)
+    
+    # For each feature, show weights to all 16 neurons in first hidden layer
+    for j, feature_name in enumerate(feature_names):
+        plt.bar(np.arange(16) + j*0.25, feature_weights[j], width=0.2, label=feature_name)
+    
+    plt.title(f'{name.upper()} Weights')
+    plt.xlabel('Neurons')
+    plt.ylabel('Weight Value')
+    if i == 1:
+        plt.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+### Step 10: Design Your Own Custom Activation Function
+
+Now that you've seen how the seasonal activation function works, try designing your own custom activation function that might better capture ecological relationships in your data:
+
+```python
+def my_custom_activation(x):
+    # YOUR CODE HERE
+    # Example: Combine multiple existing activations or create something new
+    # For example, a function that has different behavior for positive and negative values
+    # with a smooth transition between seasons
+    pass
+
+# Test your activation function
+x_range = np.linspace(-5, 5, 1000)
+y_values = [my_custom_activation(x) for x in x_range]
+
+plt.figure(figsize=(10, 6))
+plt.plot(x_range, y_values)
+plt.title('My Custom Activation Function')
+plt.xlabel('Input')
+plt.ylabel('Output')
+plt.grid(True)
+plt.axhline(y=0, color='k', linestyle='-', alpha=0.3)
+plt.axvline(x=0, color='k', linestyle='-', alpha=0.3)
+plt.show()
+```
+
+### Ecological Insights from Activation Functions
+
+The choice of activation functions has significant implications for modeling ecological systems:
+
+1. **Threshold Effects**: Many ecological phenomena exhibit threshold behaviors where a small change in input (e.g., temperature exceeding a critical value) causes a dramatic change in output (e.g., algal blooms). ReLU and ELU can model these effects.
+
+2. **Saturation Effects**: Other ecological relationships saturate at high values (e.g., growth rates cannot exceed certain biological limits). Sigmoid and tanh capture these saturation dynamics.
+
+3. **Seasonal Patterns**: Ecological data often contains cyclical patterns. Our custom seasonal activation incorporates sinusoidal components that can better model these cycles.
+
+4. **Asymmetric Responses**: Many species respond differently to increases versus decreases in environmental factors. Leaky ReLU and ELU provide different behaviors for positive and negative inputs.
+
+### Extensions and Challenges
+
+1. **Parameterized Activation**: Modify the seasonal activation to include a learnable parameter for the frequency and amplitude of seasonality.
+
+2. **Multiple Seasonal Patterns**: Create an activation function that can capture both annual and daily cycles often present in ecological data.
+
+3. **Threshold-Based Activation**: Design an activation function specifically for modeling ecological thresholds (e.g., minimum temperature for germination).
+
+4. **Compare with Attention Mechanisms**: For advanced students, compare how attention mechanisms might capture seasonal patterns compared to custom activations.
+
+This project demonstrates how carefully chosen or custom-designed activation functions can significantly improve neural network performance on environmental data with complex nonlinear and seasonal patterns.
