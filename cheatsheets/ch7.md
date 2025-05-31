@@ -1,32 +1,51 @@
-Chapter 7 – Neural Network Visualization
-📑 Assumptions & Variable Definitions (for the demo visualizer)
-Symbol / NameType / ShapePlain-language meaningmodelPyTorch nn.ModuleA trained feed-forward neural network (three dense layers in the example)layer_outputsdict[str, torch.Tensor]Captured activations for any layer that registers a forward hooksample_inputstorch.Tensor [b, n]A small batch (b rows) of environmental measurements fed through the netweightstorch.TensorParameter matrix for a given layer (e.g. model.fc1.weight)gradientstorch.Tensor.grad of the same parameter after a backward passpca_2dnumpy.ndarray [b, 2]2-D projection (via PCA) of hidden-layer activations, used for scatter plottingpltMatplotlib moduleStandard plotting library for heat-maps & scatters
+# Chapter 7 – Neural Network Visualization
 
-Context reminder – nothing about training changes here; we only inspect a network that already works.
-The logic focuses on collect → condense → show.
+## 📑 Assumptions & Variable Definitions (for the demo visualizer)
 
-🔑 Algorithm — "Collect-Condense-Show" Visualization Pipeline
+| Symbol / Name | Type / Shape | Plain-language meaning |
+|---------------|-------------|----------------------|
+| model | PyTorch nn.Module | A trained feed-forward neural network (three dense layers in the example) |
+| layer_outputs | dict[str, torch.Tensor] | Captured activations for any layer that registers a forward hook |
+| sample_inputs | torch.Tensor [b, n] | A small batch (b rows) of environmental measurements fed through the net |
+| weights | torch.Tensor | Parameter matrix for a given layer (e.g. model.fc1.weight) |
+| gradients | torch.Tensor.grad | of the same parameter after a backward pass |
+| pca_2d | numpy.ndarray [b, 2] | 2-D projection (via PCA) of hidden-layer activations, used for scatter plotting |
+| plt | Matplotlib module | Standard plotting library for heat-maps & scatters |
 
-Instrument the model
-A. Define a Python dict to hold named layer activations.
-B. For each layer of interest, register a forward hook that stores output.detach().
-Pass data through the net
-Run a representative batch (or a single record) through model(sample_inputs).
-Plot weight heat-maps
-For every weight matrix, call plt.imshow(weights.cpu(), cmap='bwr', vmin=-|w|, vmax=|w|); add color-bar.
-Plot activation statistics
-Histogram or violin-plot each captured activation tensor to see sparsity / saturation.
-Visualize gradient flow (optional)
-After a dummy backward pass, extract .grad from each weight, then heat-map magnitudes or print layer-wise norms.
-Dimensionality reduction
-Apply PCA (or t-SNE if you prefer) to the hidden-layer captures → get 2-D array pca_2d.
-Scatter the reduced points
-Color-code by the true label (e.g., CROSS = red, WAIT = blue) to inspect class separation.
-Interpret & iterate
-Spot dead ReLU units, exploding gradients, or weight patterns → feed the findings back into model design.
+**Context reminder** – nothing about training changes here; we only inspect a network that already works.
+The logic focuses on **collect → condense → show**.
 
-💻 Reference Code — Minimal, Fully-Commented PyTorch Visualizer
-python# ----------------------------------------------
+## 🔑 Algorithm — "Collect-Condense-Show" Visualization Pipeline
+
+1. **Instrument the model**
+   - A. Define a Python dict to hold named layer activations.
+   - B. For each layer of interest, register a forward hook that stores output.detach().
+
+2. **Pass data through the net**
+   - Run a representative batch (or a single record) through model(sample_inputs).
+
+3. **Plot weight heat-maps**
+   - For every weight matrix, call plt.imshow(weights.cpu(), cmap='bwr', vmin=-|w|, vmax=|w|); add color-bar.
+
+4. **Plot activation statistics**
+   - Histogram or violin-plot each captured activation tensor to see sparsity / saturation.
+
+5. **Visualize gradient flow (optional)**
+   - After a dummy backward pass, extract .grad from each weight, then heat-map magnitudes or print layer-wise norms.
+
+6. **Dimensionality reduction**
+   - Apply PCA (or t-SNE if you prefer) to the hidden-layer captures → get 2-D array pca_2d.
+
+7. **Scatter the reduced points**
+   - Color-code by the true label (e.g., CROSS = red, WAIT = blue) to inspect class separation.
+
+8. **Interpret & iterate**
+   - Spot dead ReLU units, exploding gradients, or weight patterns → feed the findings back into model design.
+
+## 💻 Reference Code — Minimal, Fully-Commented PyTorch Visualizer
+
+```python
+# ----------------------------------------------
 # Chapter 7 – "see_inside.py"
 # Visualize weights, activations, and PCA layout
 # ----------------------------------------------
@@ -118,5 +137,15 @@ plt.tight_layout()
 
 # ---------- 7. Show everything ----------
 plt.show()
-How the Code Reflects Chapter Concepts
-Code SectionChapter 7 Idea → ImplementationHooks (make_hook)Activation visualization – captures neuron outputs with one line of instrumentationplot_weight_heatWeight visualization – red/blue heat-map instantly shows excitatory vs inhibitory linksplot_activation_histActivation inspection – reveals dead or saturated neuronsPCA scatterDimensionality reduction – distills 4-D hidden vectors into a 2-D map that exposes class clusteringColor-coding by predsTrust & explanation – lets a user see which regions of hidden space correspond to CROSS/WAIT decisionsTight, 70-line scriptDemonstrates the "Collect-Condense-Show" algorithm in practice
+```
+
+## How the Code Reflects Chapter Concepts
+
+| Code Section | Chapter 7 Idea → Implementation |
+|-------------|--------------------------------|
+| Hooks (make_hook) | Activation visualization – captures neuron outputs with one line of instrumentation |
+| plot_weight_heat | Weight visualization – red/blue heat-map instantly shows excitatory vs inhibitory links |
+| plot_activation_hist | Activation inspection – reveals dead or saturated neurons |
+| PCA scatter | Dimensionality reduction – distills 4-D hidden vectors into a 2-D map that exposes class clustering |
+| Color-coding by preds | Trust & explanation – lets a user see which regions of hidden space correspond to CROSS/WAIT decisions |
+| Tight, 70-line script | Demonstrates the "Collect-Condense-Show" algorithm in practice |
